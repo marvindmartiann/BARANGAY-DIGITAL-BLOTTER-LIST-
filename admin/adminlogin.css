@@ -1,0 +1,175 @@
+/* adminlogin.css - Landscape Layout, no Register link */
+
+/* 1. Global Reset and Body Styling */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f0f2f5; /* Light grey background for a modern feel */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Use min-height to ensure it fills viewport but can expand */
+    color: #333;
+}
+
+/* 2. Login Container Styling (The Card) - Now wider for landscape */
+.login-container {
+    border: 1px solid #007B8E;
+    padding: 30px 50px; /* More horizontal padding */
+    width: 600px; /* Wider container for landscape */
+    background: #fff;
+    border-radius: 8px; /* Slightly more rounded corners */
+    box-shadow: 0 4px 20px rgba(0, 123, 142, 0.15); /* Enhanced shadow */
+    display: flex; /* Use flexbox for inner layout */
+    flex-direction: column; /* Stack header, then form */
+    align-items: center; /* Center items horizontally */
+    gap: 25px; /* Space between header and form */
+}
+
+/* 3. Header Styling */
+.login-container h2 {
+    font-size: 28px; /* Larger font for prominence */
+    font-weight: bold;
+    color: #007B8E; /* Emphasize admin color */
+    margin-bottom: 0; /* Adjust margin as flex gap handles spacing */
+    padding-bottom: 10px; /* Added padding for a subtle underline effect */
+    border-bottom: 2px solid #007B8E; /* Subtle underline */
+    width: 100%; /* Ensure underline spans full width */
+    text-align: center;
+}
+
+/* 4. Form Styling - This is where the landscape layout happens */
+#loginForm {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap to next line if needed (e.g., small screens) */
+    justify-content: space-between; /* Distribute items with space between them */
+    width: 100%; /* Take full width of container */
+    gap: 20px; /* Space between form groups */
+}
+
+.form-group {
+    flex-basis: calc(50% - 10px); /* Two columns, accounting for gap */
+    text-align: left;
+    margin-bottom: 0; /* Reset margin as gap handles spacing */
+}
+
+/* Make email and password inputs take full width of their flex-basis */
+.form-group input {
+    width: 100%;
+}
+
+/* Adjust layout for single column on smaller screens or specific elements */
+.form-group.full-width {
+    flex-basis: 100%; /* Takes full width for single column layout */
+}
+
+
+/* 5. General Input Field Styling */
+input[type="email"],
+input[type="password"] {
+    padding: 12px; /* Slightly more padding for better touch targets */
+    border: 1px solid #007B8E;
+    border-radius: 5px;
+    outline: none;
+    font-size: 15px; /* Slightly larger font */
+    box-sizing: border-box;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: #005f6e; /* Darker on focus */
+    box-shadow: 0 0 0 3px rgba(0, 123, 142, 0.2); /* Soft focus shadow */
+}
+
+/* 6. Password Wrapper and Toggle Icon */
+.password-wrapper {
+    position: relative;
+    /* Removed margin-bottom here, as flex gap on #loginForm manages spacing */
+}
+
+.password-wrapper input {
+    padding-right: 45px; /* More space for the toggle icon */
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 20px; /* Larger icon */
+    color: #007B8E;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+.toggle-password:hover {
+    color: #005f6e;
+}
+
+/* 7. Forgot Password Link */
+.forgot {
+    font-size: 13px; /* Slightly larger font */
+    text-align: right; /* Aligned right within its flex-basis */
+    margin: 0; /* Reset margin as flex gap/basis handles spacing */
+    display: block;
+    color: #007B8E;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s;
+    flex-basis: 100%; /* Make it take full width below inputs */
+    padding-top: 5px; /* Space from inputs above */
+}
+
+.forgot:hover {
+    color: #005f6e;
+    text-decoration: underline;
+}
+
+/* 8. Login Button */
+button[type="submit"] {
+    width: 100%; /* Takes full width of the form */
+    padding: 14px; /* More padding for a bigger button */
+    border: none;
+    background: #007B8E;
+    color: #fff;
+    font-size: 18px; /* Larger font */
+    font-weight: bold; /* Bold text */
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    flex-basis: 100%; /* Takes full width */
+    margin-top: 15px; /* Space from forgot password/inputs */
+}
+
+button[type="submit"]:hover {
+    background: #005f6e;
+    transform: translateY(-1px); /* Slight lift effect */
+}
+
+button[type="submit"]:active {
+    transform: translateY(0);
+    background: #004d58; /* Even darker when clicked */
+}
+
+/* Remove Register text/link as requested */
+.register-text {
+    display: none; /* Hide the register text completely */
+}
+
+/* Responsive adjustments for smaller screens if needed */
+@media (max-width: 768px) {
+    .login-container {
+        width: 90%; /* Adjust width on smaller screens */
+        padding: 30px;
+    }
+    .form-group {
+        flex-basis: 100%; /* Stack elements vertically on smaller screens */
+    }
+}

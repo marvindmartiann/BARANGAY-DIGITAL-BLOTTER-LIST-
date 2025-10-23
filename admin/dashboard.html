@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | Barangay Blotter System</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+
+  <div class="sidebar">
+  <h2>ADMIN PANEL</h2>
+  <a href="#" id="btnDashboard" class="active">Dashboard</a>
+  <a href="#" id="btnComplaints">Complaints</a>
+  <a href="#" id="btnAppointments">Appointments</a>
+  <a href="#" id="btnPending">Pending</a>
+  <a href="#" id="btnApproved">Approved</a>
+  <a href="#" id="btnRejected">Rejected</a>
+  <a href="#" id="btnUsers">Users</a>
+  <a href="#" id="btnArchived">Archived</a>
+  <a href="#" id="btnAccount">Account</a>
+  <a href="#" id="btnLogout">Logout</a>
+</div>
+
+  <div class="main-content">
+    <div id="content"></div>
+  </div>
+
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    /* ======================================
+    ✅ CRITICAL ACCESS CONTROL CHECK (FIXED)
+    ======================================
+    */
+    // Kukunin ang user object galing sa localStorage
+    const user = JSON.parse(localStorage.getItem("user"));
+    
+    // Check if WALA siyang user (not logged in) OR HINDI siya 'official'
+    if (!user || user.user_type?.toLowerCase() !== "official") {
+      console.error("Access Denied: Unauthorized user type or session expired.");
+      
+      // Clear ang session
+      localStorage.removeItem("user");
+      
+      // I-redirect sa login page
+      window.location.href = "../login.html";
+      
+      // Ititigil ang pag-load ng page
+      throw new Error("Access denied: User is not an official."); 
+    }
+
+    /* ---------------------------------------------------- */
+    /* ========== GLOBAL ELEMENTS (Starts Here) ========== */
+    /* ---------------------------------------------------- */
+    
+    // Kung nakalagpas siya sa check, safe na gamitin ang 'user' at ang ibang elements
+    const content = document.getElementById("content");
+    const buttons = document.querySelectorAll(".sidebar a");
+
+    // ✅ Sidebar Active State Switching
+    buttons.forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault(); // Prevent default link behavior
+        buttons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        switch (btn.id) {
+          case "btnDashboard": showDashboard(); break;
+          case "btnComplaints": showComplaints(); break;
+          case "btnAppointments": showAppointments(); break;
+          case "btnPending": showPending(); break;
+          case "btnApproved": showApproved(); break;
+          case "btnRejected": showRejected(); break;
+          case "btnUsers": showUsers(); break;
+          case "btnArchived": showArchived(); break;
+          case "btnAccount": showAccount(); break; // Added handler
+        }
+      });
+    });
+
+    /* 🌏 FORMAT DATE TO PH TIME */
+  function formatDateToPH(dateStr) {
+    if (!dateStr) return "—";
+
+    // Use toLocaleDateString with explicit timezone
+    const date = new Date(dateStr);
+    // This is safer as it uses the existing date/time columns without guessing timezone offset
+    return date.toLocaleDateString("en-CA");
+  }
+
+    /* ========== 1️⃣ DASHBOARD SECTION ========== */
+async function showDashboard() {
+  try {
+    // Fetch all complaints/appointments to get correct counts and lists
+    const [complaintsRes, appointmentsRes] = await Promise.all([
+      fetch("http://localhost:8081/api/complaints"),
+      fetch("http://localhost:8081/api/appointments")
+    ]);
+    const complaints = await complaintsRes.json();
+    const appointments = await appointmentsRes.json();
+
+    // Sort by a creation timestamp for "Latest" (assuming created_at exists)
+    const sortedComplaints = [...complaints].sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+    const sortedAppointments = [...appointments].sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+
+    content.innerHTML = `
+      <h1>Dashboard Overview</h1>
+
+      <div class="dashboard-cards">
+        <div class="card hover" id="cardComplaints">
+          <h1>${complaints.length}</h1>
+          <p>Total Complaints</p>
+        </div>
+        <div class="card hover" id="cardAppointments">
+          <h1>${appointments.length}</h1>
+          <p>Total Appointments</p>
+        </div>
+      </div>
+
+      <h1>Incident Type Distribution</h1>
+      <canvas id="incidentChart"></canvas>
+
+      <h1>Latest Submissions</h1>
+
+      <details class="dropdown" open>
+        <summary>Latest Complaints ▼</summary>
+        <div class="dropdown-content">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Person Reported</th>
+                <th>Incident Type</th>
+                <th>Details</th>
+                <th>Date</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sortedComplaints.slice(0, 5).map(c => `
+                <tr>
+                  <td>${c.id}</td>
+                  <td>${c.user_name || '—'}</td>
+                  <td>${c.personToReport || '—'}</td>
+                  <td>${c.incident_type || '—'}</td>
+                  <td>${c.details || '—'}</td>
+                  <td>${formatDateToPH(c.date)}</td>
+                  <td>${c.time || '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <details class="dropdown" open>
+        <summary>Latest Appointments ▼</summary>
+        <div class="dropdown-content">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Reason</th>
+                <th>Date</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sortedAppointments.slice(0, 5).map(a => `
+                <tr>
+                  <td>${a.id}</td>
+                  <td>${a.user_name || '—'}</td>
+                  <td>${a.reason || '—'}</td>
+                  <td>${formatDateToPH(a.date)}</td>
+                  <td>${a.time || '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    `;
+    
+    // ✅ Chart Data Prep
+    const incidentCount = {};
+    complaints.forEach(c => {
+      const type = c.incident_type || 'Unknown';
+      incidentCount[type] = (incidentCount[type] || 0) + 1;
+    });
+
+    // 🔹 CHART.JS CONFIG
+    const ctx = document.getElementById("incidentChart").getContext("2d");
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: Object.keys(incidentCount),
+        datasets: [{
+          label: "Number of Complaints",
+          data: Object.values(incidentCount),
+          backgroundColor: "#007B8E",
+          borderColor: "#0a5b69",
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        scales: {
+          x: { beginAtZero: true, ticks: { color: "#333" } },
+          y: { ticks: { color: "#333" } }
+        },
+        plugins: {
+          legend: { labels: { color: "#333" } },
+          title: {
+            display: true,
+            text: "Incident Type Distribution",
+            color: "#007B8E",
+            font: { size: 18, weight: "bold" }
+          }
+        }
+      }
+    });
+  } catch (err) {
+    console.error("Error loading dashboard data:", err);
+    content.innerHTML = "<h1>Dashboard Overview</h1><p>Error loading data. Check server console.</p>";
+  }
+}
+
+    /* ========== 2️⃣ COMPLAINTS SECTION ========== */
+    async function showComplaints() {
+  const res = await fetch("http://localhost:8081/api/complaints");
+  const complaints = await res.json();
+
+  content.innerHTML = `
+    <h1>Complaints</h1>
+    <div class="controls">
+      <input type="text" id="searchComplaint" placeholder="Search by name" onkeyup="filterComplaints()" />
+      <select id="filterIncident" onchange="filterComplaints()">
+        <option value="">All Incidents</option>
+        ${[...new Set(complaints.map(c => c.incident_type))].map(t => `<option value="${t}">${t}</option>`).join('')}
+      </select>
+      <button class="btn" onclick="showComplaints()">Refresh</button>
+    </div>
+
+    <table id="complaintsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User</th>
+          <th>Contact</th>
+          <th>Person Reported</th>
+          <th>Incident</th>
+          <th>Details</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${complaints.map(c => `
+          <tr>
+            <td>${c.id}</td>
+            <td>${c.user_name}</td>
+            <td>${c.contact || '—'}</td>
+            <td>${c.personToReport || '—'}</td>
+            <td>${c.incident_type || '—'}</td>
+            <td>${c.details || '—'}</td>
+            <td>${formatDateToPH(c.date)}</td>
+            <td>${c.time || '—'}</td>
+            <td id="complaint-status-${c.id}">
+              <span class="badge ${c.status?.toLowerCase() || 'pending'}">${c.status || 'Pending'}</span>
+            </td>
+            <td>
+              <button onclick="updateStatus('complaint', ${c.id}, 'Approved')" class="btn-approve">Approve</button>
+              <button onclick="updateStatus('complaint', ${c.id}, 'Rejected')" class="btn-reject">Reject</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  // ✅ Filtering function (by name or incident)
+  window.filterComplaints = function() {
+    const search = document.getElementById("searchComplaint").value.toLowerCase();
+    const filter = document.getElementById("filterIncident").value;
+    const rows = document.querySelectorAll("#complaintsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const incident = row.cells[4].textContent;
+      const match = name.includes(search) && (filter === "" || incident === filter);
+      row.style.display = match ? "" : "none";
+    });
+  };
+}
+
+    /* ========== 3️⃣ APPOINTMENTS SECTION ========== */
+   async function showAppointments() {
+  const res = await fetch("http://localhost:8081/api/appointments");
+  const appointments = await res.json();
+
+  content.innerHTML = `
+    <h1>Appointments</h1>
+    <div class="controls">
+      <input type="text" id="searchAppointment" placeholder="Search by name" onkeyup="filterAppointments()" />
+      <button class="btn" onclick="showAppointments()">Refresh</button>
+    </div>
+
+    <table id="appointmentsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User</th>
+          <th>Reason</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${appointments.map(a => `
+          <tr>
+            <td>${a.id}</td>
+            <td>${a.user_name}</td>
+            <td>${a.reason || '—'}</td>
+            <td>${formatDateToPH(a.date)}</td>
+            <td>${a.time || '—'}</td>
+            <td id="appointment-status-${a.id}">
+              <span class="badge ${a.status?.toLowerCase() || 'pending'}">${a.status || 'Pending'}</span>
+            </td>
+            <td>
+              <button onclick="updateStatus('appointment', ${a.id}, 'Approved')" class="btn-approve">Approve</button>
+              <button onclick="updateStatus('appointment', ${a.id}, 'Rejected')" class="btn-reject">Reject</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  // ✅ Simple name search
+  window.filterAppointments = function() {
+    const search = document.getElementById("searchAppointment").value.toLowerCase();
+    const rows = document.querySelectorAll("#appointmentsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const match = name.includes(search);
+      row.style.display = match ? "" : "none";
+    });
+  };
+}
+
+    /* ========== 4️⃣ PENDING SECTION ========== */
+async function showPending() {
+  const [complaintsRes, appointmentsRes] = await Promise.all([
+    fetch("http://localhost:8081/api/complaints"),
+    fetch("http://localhost:8081/api/appointments")
+  ]);
+
+  const complaints = (await complaintsRes.json()).filter(c => c.status === 'Pending' || !c.status);
+  const appointments = (await appointmentsRes.json()).filter(a => a.status === 'Pending' || !a.status);
+
+  content.innerHTML = `
+    <h1>Pending Records</h1>
+
+    <h3>Pending Complaints</h3>
+    <div class="controls">
+      <input type="text" id="searchPendingComplaints" placeholder="Search by name..." onkeyup="filterPendingComplaints()" />
+      <select id="filterPendingIncident" onchange="filterPendingComplaints()">
+        <option value="">All Incidents</option>
+        ${[...new Set(complaints.map(c => c.incident_type))].map(t => `<option value="${t}">${t}</option>`).join('')}
+      </select>
+      <button class="btn" onclick="showPending()">Refresh</button>
+    </div>
+    <table id="pendingComplaintsTable">
+      <thead>
+        <tr>
+          <th>ID</th><th>User</th><th>Person Reported</th><th>Incident</th>
+          <th>Details</th><th>Date</th><th>Time</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${complaints.map(c => `
+          <tr>
+            <td>${c.id}</td><td>${c.user_name}</td><td>${c.personToReport || '—'}</td>
+            <td>${c.incident_type || '—'}</td><td>${c.details || '—'}</td>
+            <td>${formatDateToPH(c.date)}</td><td>${c.time || '—'}</td>
+            <td><span class="badge pending">Pending</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <h3>Pending Appointments</h3>
+    <div class="controls">
+      <input type="text" id="searchPendingAppointments" placeholder="Search by name..." onkeyup="filterPendingAppointments()" />
+      <button class="btn" onclick="showPending()">Refresh</button>
+    </div>
+    <table id="pendingAppointmentsTable">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Reason</th><th>Date</th><th>Time</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${appointments.map(a => `
+          <tr>
+            <td>${a.id}</td><td>${a.user_name}</td><td>${a.reason || '—'}</td>
+            <td>${formatDateToPH(a.date)}</td><td>${a.time || '—'}</td>
+            <td><span class="badge pending">Pending</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  window.filterPendingComplaints = function() {
+    const search = document.getElementById("searchPendingComplaints").value.toLowerCase();
+    const filter = document.getElementById("filterPendingIncident").value;
+    const rows = document.querySelectorAll("#pendingComplaintsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const incident = row.cells[3].textContent;
+      const match = name.includes(search) && (filter === "" || incident === filter);
+      row.style.display = match ? "" : "none";
+    });
+  };
+
+  window.filterPendingAppointments = function() {
+    const search = document.getElementById("searchPendingAppointments").value.toLowerCase();
+    const rows = document.querySelectorAll("#pendingAppointmentsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const match = name.includes(search);
+      row.style.display = match ? "" : "none";
+    });
+  };
+}
+
+/* ========== 5️⃣ APPROVED SECTION ========== */
+async function showApproved() {
+  const [complaintsRes, appointmentsRes] = await Promise.all([
+    fetch("http://localhost:8081/api/complaints"),
+    fetch("http://localhost:8081/api/appointments")
+  ]);
+  const complaints = (await complaintsRes.json()).filter(c => c.status === 'Approved');
+  const appointments = (await appointmentsRes.json()).filter(a => a.status === 'Approved');
+
+  content.innerHTML = `
+    <h1>Approved Records</h1>
+
+    <h3>Approved Complaints</h3>
+    <div class="controls">
+      <input type="text" id="searchApprovedComplaints" placeholder="Search by name..." onkeyup="filterApprovedComplaints()" />
+      <select id="filterApprovedIncident" onchange="filterApprovedComplaints()">
+        <option value="">All Incidents</option>
+        ${[...new Set(complaints.map(c => c.incident_type))].map(t => `<option value="${t}">${t}</option>`).join('')}
+      </select>
+      <button class="btn" onclick="showApproved()">Refresh</button>
+    </div>
+    <table id="approvedComplaintsTable">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Person Reported</th><th>Incident</th>
+        <th>Details</th><th>Date</th><th>Time</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${complaints.map(c => `
+          <tr>
+            <td>${c.id}</td><td>${c.user_name}</td><td>${c.personToReport || '—'}</td>
+            <td>${c.incident_type || '—'}</td><td>${c.details || '—'}</td>
+            <td>${formatDateToPH(c.date)}</td><td>${c.time || '—'}</td>
+            <td><span class="badge approved">Approved</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <h3>Approved Appointments</h3>
+    <div class="controls">
+      <input type="text" id="searchApprovedAppointments" placeholder="Search by name..." onkeyup="filterApprovedAppointments()" />
+      <button class="btn" onclick="showApproved()">Refresh</button>
+    </div>
+    <table id="approvedAppointmentsTable">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Reason</th><th>Date</th><th>Time</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${appointments.map(a => `
+          <tr>
+            <td>${a.id}</td><td>${a.user_name}</td><td>${a.reason || '—'}</td>
+            <td>${formatDateToPH(a.date)}</td><td>${a.time || '—'}</td>
+            <td><span class="badge approved">Approved</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  window.filterApprovedComplaints = function() {
+    const search = document.getElementById("searchApprovedComplaints").value.toLowerCase();
+    const filter = document.getElementById("filterApprovedIncident").value;
+    const rows = document.querySelectorAll("#approvedComplaintsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const incident = row.cells[3].textContent;
+      const match = name.includes(search) && (filter === "" || incident === filter);
+      row.style.display = match ? "" : "none";
+    });
+  };
+
+  window.filterApprovedAppointments = function() {
+    const search = document.getElementById("searchApprovedAppointments").value.toLowerCase();
+    const rows = document.querySelectorAll("#approvedAppointmentsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const match = name.includes(search);
+      row.style.display = match ? "" : "none";
+    });
+  };
+}
+
+/* ========== 6️⃣ REJECTED SECTION ========== */
+async function showRejected() {
+  const [complaintsRes, appointmentsRes] = await Promise.all([
+    fetch("http://localhost:8081/api/complaints"),
+    fetch("http://localhost:8081/api/appointments")
+  ]);
+  const complaints = (await complaintsRes.json()).filter(c => c.status === 'Rejected');
+  const appointments = (await appointmentsRes.json()).filter(a => a.status === 'Rejected');
+
+  content.innerHTML = `
+    <h1>Rejected Records</h1>
+
+    <h3>Rejected Complaints</h3>
+    <div class="controls">
+      <input type="text" id="searchRejectedComplaints" placeholder="Search by name..." onkeyup="filterRejectedComplaints()" />
+      <select id="filterRejectedIncident" onchange="filterRejectedComplaints()">
+        <option value="">All Incidents</option>
+        ${[...new Set(complaints.map(c => c.incident_type))].map(t => `<option value="${t}">${t}</option>`).join('')}
+      </select>
+      <button class="btn" onclick="showRejected()">Refresh</button>
+    </div>
+    <table id="rejectedComplaintsTable">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Person Reported</th><th>Incident</th>
+        <th>Details</th><th>Date</th><th>Time</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${complaints.map(c => `
+          <tr>
+            <td>${c.id}</td><td>${c.user_name}</td><td>${c.personToReport || '—'}</td>
+            <td>${c.incident_type || '—'}</td><td>${c.details || '—'}</td>
+            <td>${formatDateToPH(c.date)}</td><td>${c.time || '—'}</td>
+            <td><span class="badge rejected">Rejected</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <h3>Rejected Appointments</h3>
+    <div class="controls">
+      <input type="text" id="searchRejectedAppointments" placeholder="Search by name..." onkeyup="filterRejectedAppointments()" />
+      <button class="btn" onclick="showRejected()">Refresh</button>
+    </div>
+    <table id="rejectedAppointmentsTable">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Reason</th><th>Date</th><th>Time</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${appointments.map(a => `
+          <tr>
+            <td>${a.id}</td><td>${a.user_name}</td><td>${a.reason || '—'}</td>
+            <td>${formatDateToPH(a.date)}</td><td>${a.time || '—'}</td>
+            <td><span class="badge rejected">Rejected</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  window.filterRejectedComplaints = function() {
+    const search = document.getElementById("searchRejectedComplaints").value.toLowerCase();
+    const filter = document.getElementById("filterRejectedIncident").value;
+    const rows = document.querySelectorAll("#rejectedComplaintsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const incident = row.cells[3].textContent;
+      const match = name.includes(search) && (filter === "" || incident === filter);
+      row.style.display = match ? "" : "none";
+    });
+  };
+
+  window.filterRejectedAppointments = function() {
+    const search = document.getElementById("searchRejectedAppointments").value.toLowerCase();
+    const rows = document.querySelectorAll("#rejectedAppointmentsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const match = name.includes(search);
+      row.style.display = match ? "" : "none";
+    });
+  };
+}
+
+    /* ========== 5️⃣ USERS SECTION ========== */
+    async function showUsers() {
+      const res = await fetch("http://localhost:8081/api/users");
+      const users = await res.json();
+
+      content.innerHTML = `
+        <h1>Users</h1>
+        <table id="usersTable">
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>${users.map(u => `
+            <tr>
+              <td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.status}</td>
+              <td><button onclick="toggleUser(${u.id}, '${u.status}')" class="btn-toggle">
+                ${u.status === 'Active' ? 'Deactivate' : 'Activate'}
+              </button></td>
+            </tr>
+          `).join('')}</tbody>        </table>
+      `;    }
+
+    async function toggleUser(id, status) {
+      const newStatus = status === 'Active' ? 'Inactive' : 'Active';
+      await fetch(`http://localhost:8081/api/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      showUsers();
+    }
+
+    /* ========== 6️⃣ ARCHIVED USERS SECTION ========== */
+    async function showArchived() {
+      const res = await fetch("http://localhost:8081/api/users");
+      const users = await res.json();
+      const archived = users.filter(u => u.status === 'Inactive');
+
+      content.innerHTML = `
+        <h1>Archived Users</h1>
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th></tr></thead>
+          <tbody>${archived.map(u => `
+            <tr><td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.status}</td></tr>
+          `).join('')}</tbody>        </table>
+      `;    }
+
+    // ✅ Default View
+    showDashboard();
+
+    function updateStatus(type, id, status) {
+  fetch("http://localhost:8081/update-status", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type, id, status }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      alert(data.message);
+      const badge = document.querySelector(`#${type}-status-${id} .badge`);
+      if (badge) {
+        badge.textContent = status;
+        badge.className = `badge ${status.toLowerCase()}`;
+      }
+    })
+    .catch((err) => console.error("Error:", err));
+}
+
+/* ========== ACCOUNT PAGE ========== */
+function showAccount() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) return alert("No user logged in.");
+
+  content.innerHTML = `
+    <h1>Admin Account</h1>
+    <div class="account-container">
+      <p><strong>Name:</strong> ${user.name}</p>
+      <p><strong>Email:</strong> ${user.email}</p>
+      <p><strong>Role:</strong> ${user.user_type}</p>
+      <hr>
+      <h2>Change Password</h2>
+      <form id="changePasswordForm">
+        <label>Current Password:</label>
+        <div class="password-field">
+          <input type="password" id="currentPassword" required />
+          <span class="toggle-password" data-target="currentPassword" title="Show/Hide Password">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="gray" viewBox="0 0 24 24">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 
+              12c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5zm0-7.5a3 
+              3 0 100 6 3 3 0 000-6z"/>
+            </svg>
+          </span>
+        </div>
+
+        <label>New Password:</label>
+        <div class="password-field">
+          <input type="password" id="newPassword" required />
+          <span class="toggle-password" data-target="newPassword" title="Show/Hide Password">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="gray" viewBox="0 0 24 24">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 
+              12c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5zm0-7.5a3 
+              3 0 100 6 3 3 0 000-6z"/>
+            </svg>
+          </span>
+        </div>
+
+        <label>Confirm New Password:</label>
+        <div class="password-field">
+          <input type="password" id="confirmPassword" required />
+          <span class="toggle-password" data-target="confirmPassword" title="Show/Hide Password">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="gray" viewBox="0 0 24 24">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 
+              12c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5zm0-7.5a3 
+              3 0 100 6 3 3 0 000-6z"/>
+            </svg>
+          </span>
+        </div>
+
+        <button type="submit" class="btn">Update Password</button>
+      </form>
+    </div>
+  `;
+  // 👁️ Show/hide password toggle
+  document.querySelectorAll(".toggle-password").forEach(icon => {
+    icon.addEventListener("click", () => {
+      const input = document.getElementById(icon.dataset.target);
+      input.type = input.type === "password" ? "text" : "password";
+    });
+  });
+
+  // 🔐 Change password logic
+  document.getElementById("changePasswordForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const currentPassword = document.getElementById("currentPassword").value.trim();
+    const newPassword = document.getElementById("newPassword").value.trim();
+    const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      alert("⚠️ Please fill in all fields.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("❌ New passwords do not match!");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:8081/api/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          currentPassword,
+          newPassword
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || "❌ Failed to update password.");
+        console.error("Server response:", data);
+        return;
+      }
+
+      alert(data.message);
+      localStorage.clear();
+      window.location.href = "../login.html";
+
+    } catch (err) {
+      console.error("Fetch error:", err);
+      alert("❌ Unable to connect to the server.");
+    }
+  });
+}
+
+// ✅ LOGOUT FUNCTION
+document.getElementById("btnLogout").addEventListener("click", (e) => {
+  e.preventDefault();
+  if (confirm("Are you sure you want to logout?")) {
+    localStorage.removeItem("user"); // remove saved login
+    window.location.href = "../login.html";
+  }
+});
+
+  </script>
+</body>
+</html>
