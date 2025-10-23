@@ -1,0 +1,212 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f9fa;  /* light background para lumutang yung form */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+header {
+  position: fixed;   /* para laging nasa taas */
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #007B8E;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 40px;
+  z-index: 1000;
+}
+
+.logo {
+  width: 100px;   /* fix container size */
+  height: 100px;  /* square box */
+  overflow: hidden; /* putol yung sobra */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo img {
+  max-width: 160%;
+  max-height: 160%;
+}
+
+header nav ul {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+  margin-left: 1190px;
+  padding: 0;
+}
+
+header nav ul li a {
+  color: white;
+  font-size: 18px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+header .profile-icon img {
+  margin-right: 85px;
+  width: 50px;       /* adjust ayon sa gusto mo */
+  height: 50px;      /* adjust ayon sa gusto mo */
+  object-fit: cover; /* para hindi ma-stretch o ma-distort */
+  border-radius: 50%; /* optional: para maging bilog */
+}
+
+/* Floating form container */
+.form-container {
+  background: white;
+  padding: 50px 60px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 650px;
+  max-width: 95%;
+  margin-top: 110px;   /* para hindi tamaan ng header */
+}
+
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 32px;
+  color: #007B8E;
+}
+
+/* Tabs */
+.tab-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.tab-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #ddd;
+  font-weight: bold;
+  font-size: 22px;
+}
+
+.tab-buttons button.active {
+  background: #007B8E;
+  color: white;
+}
+
+/* Inputs */
+form label {
+  display: block;
+  margin: 12px 0 5px;
+  font-weight: bold;
+  color: #333;
+  font-size: 18px;
+}
+
+form input,
+form textarea {
+  width: 95%;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 18px;
+}
+
+form textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Buttons */
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 25px;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.btn-primary {
+  background: #007B8E;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #005f6e;
+}
+
+.btn-secondary {
+  background: #ccc;
+}
+
+.btn-secondary:hover {
+  background: #aaa;
+}
+
+/* Readonly input style */
+input[readonly] {
+  background-color: #f1f1f1;
+  color: #555;
+  cursor: not-allowed;
+  font-size: 22px;
+}
+
+/* ✅ NAVBAR LINK EFFECTS */
+header nav ul li {
+  position: relative;
+}
+
+header nav ul li a {
+  color: white;
+  font-size: 18px;
+  text-decoration: none;
+  font-weight: bold;
+  padding-bottom: 5px;
+  transition: color 0.3s ease;
+}
+
+/* Hover underline animation */
+header nav ul li a::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: white;
+  transition: width 0.3s ease;
+}
+
+/* On hover */
+header nav ul li a:hover {
+  color: #d4f4f9;
+}
+
+header nav ul li a:hover::after {
+  width: 100%;
+}
+
+/* ✅ Active Page Highlight */
+header nav ul li a.active {
+  color: #d4f4f9;
+}
+
+header nav ul li a.active::after {
+  width: 100%;
+}
+

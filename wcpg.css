@@ -1,0 +1,64 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: url("biglogo.png") no-repeat left center;
+  background-size: 73% auto;
+  background-attachment: fixed;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Floating content box - fixed anchor */
+.content {
+  position: absolute;
+  top: 50%;
+  right: 10%;
+  transform: translateY(-50%);
+  max-width: 670px;
+  width: 45%;
+  color: #007B8E;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 40px;
+  border-radius: 30px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+}
+
+/* Headings and text */
+.content h1 {
+  font-size: 100px;
+  margin: 0;
+  font-weight: bold;
+}
+
+.content h2 {
+  font-size: 50px;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.content p {
+  font-size: 20px;
+  margin: 20px 0;
+  line-height: 1.6;
+}
+
+/* Button styling */
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #007B8E;
+  color: #fff;
+  font-size: 35px;
+  text-decoration: none;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  transition: 0.3s;
+}
+
+.btn:hover {
+  background: #0a5b69;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}

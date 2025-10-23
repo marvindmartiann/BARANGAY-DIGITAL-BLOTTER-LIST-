@@ -1,0 +1,110 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container {
+  border: 1px solid #007B8E;
+  padding: 40px;
+  width: 350px;
+  background: #fff;
+  text-align: center;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  width: 100%; /* fixed width para hindi magliit */
+  padding: 13px 40px 10px 10px; /* space for the eye icon */
+  box-sizing: border-box; /* importante para hindi magbago width */
+  border: 1px solid #007B8E;
+  border-radius: 5px;
+  outline: none;
+  font-size: 14px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 65%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  display: flex; /* prevent shift kapag click */
+  align-items: center;
+  user-select: none;
+}
+
+h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.form-group {
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+label {
+  font-size: 14px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+input[type="email"] {
+  width: 100%; /* uniform width with password input */
+  padding: 10px;
+  border: 1px solid #007B8E;
+  border-radius: 5px;
+  outline: none;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.forgot {
+  font-size: 12px;
+  text-align: left;
+  margin: 5px 0 15px 0;
+  display: block;
+  color: #333;
+  cursor: pointer;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: #007B8E;
+  color: #fff;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #007B8E;
+}
+
+.register-text {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.register-text a {
+  color: #007B8E;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.register-text a:hover {
+  text-decoration: underline;
+}

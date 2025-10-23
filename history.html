@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User History | Barangay Blotter System</title>
+  <link rel="stylesheet" href="history.css">
+</head>
+<body>
+  <header>
+    <div class="logo"><img src="logo 1.png" alt="Logo"></div>
+    <nav>
+      <ul>
+        <li><a href="landingpgusr.html">Home</a></li>
+        <li><a href="fac.html">File Complaint</a></li>
+        <li><a href="appointment.html">Appointment</a></li>
+        <li><a href="history.html">History</a></li>
+        <li><a href="notif.html">Notifications</a></li>
+      </ul>
+    </nav>
+    <div class="profile-icon">
+      <a href="profile.html"><img src="account.png" alt="account"></a>
+    </div>
+  </header>
+
+  <div class="container">
+    <h1>History</h1>
+
+    <!-- Complaints Table -->
+    <h2>My Complaints 
+      <button class="refresh-btn" onclick="loadComplaints()">Refresh</button>
+    </h2>
+    <input type="text" id="complaintSearch" class="search-bar" placeholder="Search complaints...">
+    <div class="table-container">
+      <table id="complaintsTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Person To Report</th>
+            <th>Details</th>
+            <th>Incident Type</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="7" class="no-data">Loading complaints...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <br><br>
+
+    <!-- Appointments Table -->
+    <h2>My Appointments 
+      <button class="refresh-btn" onclick="loadAppointments()">Refresh</button>
+    </h2>
+    <input type="text" id="appointmentSearch" class="search-bar" placeholder="Search appointments...">
+    <div class="table-container">
+      <table id="appointmentsTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Reason</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5" class="no-data">Loading appointments...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+   /*
+    ✅ CORRECTION: Centralized Access Control and ID retrieval
+    */
+    const user = JSON.parse(localStorage.getItem("user"));
+    
+    // Check if user is NOT logged in OR user is NOT a Resident
+    if (!user || user.user_type?.toLowerCase() !== "resident") {
+        
+        console.error("Access Denied: Invalid user or unauthorized access.");
+        
+        // Mag-redirect sa tamang page (Official -> Admin, Walang User -> Login)
+        if (user && user.user_type?.toLowerCase() === "official") {
+            // Official? -> Admin Dashboard
+            window.location.href = "admin/dashboard.html";
+        } else {
+            // Walang User? -> Login
+            alert("⚠️ Please log in first."); 
+            window.location.href = "login.html";
+        }
+        throw new Error("Unauthorized access stopped."); 
+    }
+    
+    // 🔑 Dito na natin kukunin ang ID, gamit ang TAMA na 'user' object
+    const currentUserId = user.id;
+    // Load Complaints
+    async function loadComplaints() {
+      const tbody = document.querySelector("#complaintsTable tbody");
+      try {
+        const res = await fetch(`http://localhost:8081/api/complaints/user/${currentUserId}`);
+        const data = await res.json();
+
+        if (!data.length) {
+          tbody.innerHTML = `<tr><td colspan="7" class="no-data">No complaints found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data.map(c => `
+          <tr>
+            <td>${c.id}</td>
+            <td>${c.date}</td>
+            <td>${c.time}</td>
+            <td>${c.personToReport}</td>
+            <td>${c.details}</td>
+            <td>${c.incident_type || '—'}</td>
+            <td>${c.status || 'Pending'}</td>
+          </tr>
+        `).join("");
+
+        // Add search filter
+        document.getElementById("complaintSearch").addEventListener("keyup", function() {
+          const filter = this.value.toLowerCase();
+          const rows = tbody.querySelectorAll("tr");
+          rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
+          });
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="no-data">Error loading complaints.</td></tr>`;
+      }
+    }
+
+    // Load Appointments
+    async function loadAppointments() {
+      const tbody = document.querySelector("#appointmentsTable tbody");
+      try {
+        const res = await fetch(`http://localhost:8081/api/appointments/user/${currentUserId}`);
+        const data = await res.json();
+
+        if (!data.length) {
+          tbody.innerHTML = `<tr><td colspan="5" class="no-data">No appointments found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data.map(a => `
+          <tr>
+            <td>${a.id}</td>
+            <td>${a.reason}</td>
+            <td>${a.date}</td>
+            <td>${a.time}</td>
+            <td>${a.status || 'Pending'}</td>
+          </tr>
+        `).join("");
+
+        // Add search filter
+        document.getElementById("appointmentSearch").addEventListener("keyup", function() {
+          const filter = this.value.toLowerCase();
+          const rows = tbody.querySelectorAll("tr");
+          rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
+          });
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="no-data">Error loading appointments.</td></tr>`;
+      }
+    }
+
+    // Load both on page load
+    loadComplaints();
+    loadAppointments();
+
+    // ✅ Highlight active navigation link
+  const currentPage = window.location.pathname.split("/").pop();
+  const navLinks = document.querySelectorAll("header nav ul li a");
+
+  navLinks.forEach(link => {
+    if (link.getAttribute("href") === currentPage) {
+      link.classList.add("active");
+    }
+  });
+
+  </script>
+
+</body>
+</html>

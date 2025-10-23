@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointment Scheduling</title>
+  <link rel="stylesheet" href="appointment.css">
+</head>
+<body>
+  
+  <!-- Header -->
+  <header>
+    <div class="logo"><img src="logo 1.png" alt="Logo"></div>
+    <nav>
+      <ul>
+        <li><a href="landingpgusr.html">Home</a></li>
+        <li><a href="fac.html">File Complaint</a></li>
+        <li><a href="appointment.html">Appointment</a></li>
+         <li><a href="history.html">History</a></li>
+        <li><a href="notif.html">Notifications</a></li>
+      </ul>
+    </nav>
+    <div class="profile-icon">
+      <a href="profile.html"><img src="account.png" alt="account"></a>
+    </div>
+  </header>
+
+  <!-- Appointment Form -->
+  <section class="appointment-container">
+    <h2>Appointment Scheduling</h2>
+    <div class="appointment-box">
+      <form id="appointmentForm">
+        <label for="RoA">Reason for Appointment</label>
+        <textarea id="RoA" name="RoA" placeholder="Reason for Appointment" rows="4" required></textarea>
+        <label for="date">Select Date</label>
+        <input type="date" id="date" name="date" required>
+
+        <label for="time">Select Time</label>
+        <input type="time" id="time" name="time" required>
+
+        <button type="submit">Confirm</button>
+      </form>
+    </div>
+  </section>
+
+  <script>
+    // ✅ Make sure the user is logged in and get user info
+    const user = JSON.parse(localStorage.getItem("user"));
+    const user_id = user?.id;
+    const user_name = user?.name;
+
+    // Debugging log (optional)
+    console.log("Loaded user:", user);
+
+    if (!user_id || !user_name) {
+      alert("⚠️ You must be logged in to schedule an appointment.");
+      window.location.href = "login.html"; // redirect to login if not logged in
+    }
+
+    document.getElementById("appointmentForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const reason = document.getElementById("RoA").value.trim();
+      const date = document.getElementById("date").value.trim();
+      const time = document.getElementById("time").value.trim();
+
+      if (!reason || !date || !time) {
+        alert("⚠️ Please fill out all fields.");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:8081/add-appointment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason, date, time, user_id, user_name }) // ✅ includes correct info
+        });
+
+        const data = await res.json();
+        alert(data.message);
+
+        if (res.ok) {
+          document.getElementById("appointmentForm").reset();
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        alert("❌ Server error. Please try again later.");
+      }
+    });
+
+
+    // ✅ Highlight active navigation link
+  const currentPage = window.location.pathname.split("/").pop();
+  const navLinks = document.querySelectorAll("header nav ul li a");
+
+  navLinks.forEach(link => {
+    if (link.getAttribute("href") === currentPage) {
+      link.classList.add("active");
+    }
+  });
+
+  </script>
+</body>
+</html>

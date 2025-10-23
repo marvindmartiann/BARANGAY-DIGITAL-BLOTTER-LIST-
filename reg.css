@@ -1,0 +1,112 @@
+body {
+      font-family: Arial, sans-serif;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .register-box {
+      border: 1px solid #007B8E;
+      padding: 40px;
+      border-radius: 5px;
+      width: 400px;
+      background: #fff;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    .register-box h2 {
+      margin: 0 0 10px;
+      font-size: 28px;
+    }
+
+    .register-box p {
+      margin: 0 0 20px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .toggle-buttons {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .toggle-buttons button {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border: 1px solid #007B8E;
+      background: #fff;
+      transition: 0.3s;
+    }
+
+    .toggle-buttons button.active {
+      background: #007B8E;
+      color: white;
+      font-weight: bold;
+    }
+
+    .register-box input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #007B8E;
+      border-radius: 5px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    .password-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .password-wrapper input {
+      width: 100%;
+      padding-right: 40px;
+    }
+
+    .password-wrapper .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 16px;
+      color: #555;
+    }
+
+    .register-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      background: #007B8E;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .register-btn:hover {
+      background: #007B8E;
+    }
+
+    .login-link {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .login-link a {
+      color: #007B8E;
+      text-decoration: none;
+      font-weight: bold;
+    }

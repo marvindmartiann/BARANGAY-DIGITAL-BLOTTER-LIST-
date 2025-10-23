@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+  <div class="login-container">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="Enter your email" required>
+      </div>
+
+      <div class="form-group password-wrapper">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required>
+        <span class="toggle-password" onclick="togglePassword('password')" title="Show / Hide password">👁</span>
+      </div>
+
+      <span class="forgot">Forgot Password?</span>
+
+      <button type="submit">Login</button>
+
+      <p class="register-text">Don’t have an account? <a href="reg.html">Register</a></p>
+    </form>
+  </div>
+
+<script>
+  // 👁 Toggle password visibility
+  function togglePassword(id) {
+    const input = document.getElementById(id);
+    input.type = (input.type === "password") ? "text" : "password";
+  }
+
+  document.getElementById("loginForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!email || !password) {
+      alert("⚠️ Please enter both email and password.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8081/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
+
+     if (response.ok && result.user) {
+            alert("✅ Login successful!");
+            localStorage.setItem("user", JSON.stringify(result.user));
+
+            const userType = result.user.user_type?.toLowerCase();
+
+            if (userType === "resident") {
+              // Resident -> User Landing Page
+              window.location.href = "landingpgusr.html";
+            } else if (userType === "official") {
+              // 🛑 CRITICAL: Redirect OFFICIALS to the correct admin login page.
+              localStorage.removeItem("user");
+              alert("Access denied: You must use the official Admin Login page.");
+              window.location.href = "adminlogin.html"; // <-- Use your new filename
+            } else {
+              // Fallback for any unknown user type
+              localStorage.removeItem("user");
+              alert("Access denied: Invalid user type.");
+            }
+            return;
+
+          } else {
+        alert(result.message || "❌ Invalid email or password.");
+      }
+
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("❌ Failed to connect to the server.");
+    }
+  });
+</script>
+
+</body>
+</html>

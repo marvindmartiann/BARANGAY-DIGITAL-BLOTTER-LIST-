@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="reg.css">
+</head>
+<body>
+
+  <div class="register-box">
+    <h2>Register</h2>
+    <p>Create a new account to access the system</p>
+
+    <!-- Role toggle -->
+    <div class="toggle-buttons">
+      <button type="button" class="active" onclick="setRole(this, 'Resident')">Resident</button>
+    </div>
+
+    <!-- Register form -->
+    <form id="registerForm">
+      <input type="text" id="name" placeholder="Full Name" required>
+      <input type="text" id="address" placeholder="Address" required>
+      <input type="text" id="contact" placeholder="Contact" required>
+      <input type="email" id="email" placeholder="Email" required>
+
+      <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Password" required>
+        <span class="toggle-password" onclick="togglePassword('password')">👁</span>
+      </div>
+
+      <div class="password-wrapper">
+        <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+        <span class="toggle-password" onclick="togglePassword('confirm-password')">👁</span>
+      </div>
+
+      <button type="submit" class="register-btn">Register</button>
+    </form>
+
+    <div class="login-link">
+      Already have an account? <a href="login.html">Login</a>
+    </div>
+  </div>
+
+  <script>
+  let selectedRole = "Resident"; // default value
+
+  // Function to handle role selection
+  function setRole(button, role) {
+    document.querySelectorAll('.toggle-buttons button').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+    selectedRole = role;
+  }
+
+  // Toggle password visibility
+  function togglePassword(id) {
+    const input = document.getElementById(id);
+    input.type = (input.type === "password") ? "text" : "password";
+  }
+
+  // Submit form and send data to backend
+  document.getElementById("registerForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const contact = document.getElementById("contact").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirm-password").value;
+
+    if (!name || !address || !contact || !password || !confirmPassword) {
+      alert("⚠️ Please fill in all fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert("⚠️ Passwords do not match!");
+      return;
+    }
+
+    // Prepare data to send to backend
+    const userData = {
+      user_type: selectedRole,
+      name: name,
+      address: address,
+      contact: contact,
+      email: email,
+      password: password
+    };
+
+    try {
+      const response = await fetch("http://localhost:8081/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      });
+
+      const result = await response.json();
+      alert(result.message);
+
+      if (result.message.includes("success")) {
+        window.location.href = "login.html"; // redirect to login page after success
+      }
+
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Failed to connect to the server.");
+    }
+  });
+</script>
+
+</body>
+</html>

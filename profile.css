@@ -1,0 +1,275 @@
+/* Profile-specific styles */
+     body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f9fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #007B8E;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 40px;
+      z-index: 1000;
+    }
+
+    .logo {
+    width: 100px;   /* fix container size */
+    height: 100px;  /* square box */
+    overflow: hidden; /* putol yung sobra */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+
+    .logo img {
+    max-width: 160%;
+    max-height: 160%;
+    }
+
+    header nav ul {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+    margin-left: 1190px;
+    padding: 0;
+    }
+
+    header nav ul li a {
+    color: white;
+    font-size: 18px;
+    text-decoration: none;
+    font-weight: bold;
+    }
+
+    header .profile-icon img {
+    margin-right: 85px;
+    width: 50px;       /* adjust ayon sa gusto mo */
+    height: 50px;      /* adjust ayon sa gusto mo */
+    object-fit: cover; /* para hindi ma-stretch o ma-distort */
+    border-radius: 50%; /* optional: para maging bilog */
+    }
+
+.profile-container {
+  margin-top: 100px;
+  background: white;
+  padding: 50px 60px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 750px;
+  text-align: center;
+}
+
+.profile-container h2 {
+  color: #007B8E;
+  margin-bottom: 45px;
+  font-size: 32px;
+  text-align: center;
+}
+
+.profile-info {
+  text-align: left;
+  font-size: 22px;
+  margin-bottom: 45px;
+  color: #333;
+}
+
+.profile-info p {
+  margin: 12px 0;
+  padding: 20px;
+  background: #f4f9fa;
+  border-radius: 8px;
+}
+
+.profile-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.profile-buttons button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 10px;
+  font-size: 22px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.edit-btn {
+  background: #007B8E;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #005f6e;
+}
+
+.logout-btn {
+  background: #ff5252;
+  color: white;
+}
+
+.logout-btn:hover {
+  background: #d32f2f;
+}
+
+/* 🧩 Modal Styling */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px 40px;
+  border-radius: 15px;
+  width: 650px;
+  max-width: 100%;
+  text-align: left;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+  text-align: center;
+  color: #007B8E;
+  margin-bottom: 20px;
+  font-size: 32px;
+}
+
+.modal-content label {
+  font-weight: bold;
+  display: block;
+  margin-top: 10px;
+}
+
+.modal-content input {
+  width: 97%;
+  padding: 8px;
+  font-size: 22px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 5px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 15px;
+}
+
+.save-btn {
+  background: #007B8E;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 22px;
+}
+
+.save-btn:hover {
+  background: #005f6e;
+}
+
+.cancel-btn {
+  background: #ff5252;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 22px;
+}
+
+.cancel-btn:hover {
+  background: #d32f2f;
+}
+
+/* ✅ NAVBAR LINK EFFECTS */
+header nav ul li {
+  position: relative;
+}
+
+header nav ul li a {
+  color: white;
+  font-size: 18px;
+  text-decoration: none;
+  font-weight: bold;
+  padding-bottom: 5px;
+  transition: color 0.3s ease;
+}
+
+/* Hover underline animation */
+header nav ul li a::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: white;
+  transition: width 0.3s ease;
+}
+
+/* On hover */
+header nav ul li a:hover {
+  color: #d4f4f9;
+}
+
+header nav ul li a:hover::after {
+  width: 100%;
+}
+
+/* ✅ Active Page Highlight */
+header nav ul li a.active {
+  color: #d4f4f9;
+}
+
+header nav ul li a.active::after {
+  width: 100%;
+}
+
+/* ✅ Profile Icon Active State */
+.profile-icon {
+  position: relative;
+}
+
+.profile-icon img {
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect (optional, para consistent sa nav links) */
+.profile-icon img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 2px rgba(255, 255, 255, 0.7);
+}
+
+/* Active page highlight (Profile Page) */
+.profile-icon.active img {
+  border: 3px solid #d4f4f9; /* white-blue glow border */
+  padding: 3px;
+  box-shadow: 0 0 10px #d4f4f9;
+}
+
+

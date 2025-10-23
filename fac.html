@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complaint Submission</title>
+  <link rel="stylesheet" href="fac.css">
+</head>
+<body>
+  
+  <!-- Header -->
+  <header>
+    <div class="logo"><img src="logo 1.png" alt="Logo"></div>
+    <nav>
+      <ul>
+        <li><a href="landingpgusr.html">Home</a></li>
+        <li><a href="fac.html">File Complaint</a></li>
+        <li><a href="appointment.html">Appointment</a></li>
+         <li><a href="history.html">History</a></li>
+        <li><a href="notif.html">Notifications</a></li>
+      </ul>
+    </nav>
+    <div class="profile-icon">
+      <a href="profile.html"><img src="account.png" alt="account"></a>
+    </div>
+  </header>
+
+  <!-- Complaint Form -->
+  <section class="form-container">
+    <h2>Complaint Submission</h2>
+    
+    <!-- Tabs -->
+    <div class="tab-buttons">
+      <button id="tab1" class="active">Personal Information</button>
+      <button id="tab2">Incident Details</button>
+    </div>
+
+    <form id="complaintForm">
+      <!-- Step 1 -->
+      <div id="step1">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" readonly>
+
+        <label for="contact">Contact:</label>
+        <input type="text" id="contact" name="contact" readonly>
+
+        <div class="form-buttons">
+          <button type="button" class="btn-primary" onclick="nextStep()">Next</button>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+<div id="step2" style="display:none;">
+  <label for="date">Date of Incident:</label>
+  <input type="date" id="date" name="date">
+
+  <label for="time">Time of Incident:</label>
+  <input type="time" id="time" name="time">
+
+  <label for="Report">Person to Report:</label>
+  <input type="text" id="report" name="report">
+
+  <!-- 🔽 New dropdown for incident type -->
+  <label for="incidentType">Type of Incident:</label>
+  <input list="incidentOptions" id="incidentType" name="incidentType" placeholder="Select or type incident type">
+  <datalist id="incidentOptions">
+    <option value="Violence">
+    <option value="Trespassing">
+    <option value="Theft">
+    <option value="Vandalism">
+    <option value="Harassment">
+    <option value="Disturbance of Peace">
+    <option value="Property Damage">
+    <option value="Illegal Parking">
+    <option value="Animal Complaint">
+    <option value="Others">
+  </datalist>
+
+  <label for="details">Complaint Details:</label>
+  <textarea id="details" name="details"></textarea>
+
+  <div class="form-buttons">
+    <button type="button" class="btn-secondary" onclick="prevStep()">Back</button>
+    <button type="submit" class="btn-primary">Submit</button>
+  </div>
+</div>
+    </form>
+  </section>
+
+  <script>
+  // ✅ Load logged-in user info from localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (user) {
+    document.getElementById("name").value = user.name || "";
+    document.getElementById("contact").value = user.contact || "";
+  } else {
+    alert("⚠️ Please log in first!");
+    window.location.href = "login.html";
+  }
+
+  // ✅ Step navigation
+  const step1 = document.getElementById("step1");
+  const step2 = document.getElementById("step2");
+  const tab1 = document.getElementById("tab1");
+  const tab2 = document.getElementById("tab2");
+
+  function nextStep() {
+    step1.style.display = "none";
+    step2.style.display = "block";
+    tab1.classList.remove("active");
+    tab2.classList.add("active");
+  }
+
+  function prevStep() {
+    step1.style.display = "block";
+    step2.style.display = "none";
+    tab2.classList.remove("active");
+    tab1.classList.add("active");
+  }
+
+  // ✅ Submit complaint form
+  document.getElementById("complaintForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const data = {
+      user_id: user.id,
+      user_name: user.name,
+      contact: user.contact,
+      date: document.getElementById("date").value,
+      time: document.getElementById("time").value,
+      personToReport: document.getElementById("report").value.trim(),
+      incidentType: document.getElementById("incidentType").value.trim(), 
+      details: document.getElementById("details").value.trim()
+    };
+
+    // Simple validation
+    if (
+      !data.date.trim() ||
+      !data.time.trim() ||
+      !data.personToReport.trim() ||
+      !data.incidentType.trim() || // ✅ added
+      !data.details.trim()
+    ) {
+      alert("⚠️ Please fill in all fields in the Incident Details.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8081/add-complaint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("✅ Complaint submitted successfully!");
+        document.getElementById("complaintForm").reset();
+        step1.style.display = "block";
+        step2.style.display = "none";
+        tab2.classList.remove("active");
+        tab1.classList.add("active");
+      } else {
+        alert(result.message || "❌ Failed to submit complaint.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("⚠️ Unable to connect to the server.");
+    }
+  });
+
+  // ✅ Highlight active navigation link
+  const currentPage = window.location.pathname.split("/").pop();
+  const navLinks = document.querySelectorAll("header nav ul li a");
+
+  navLinks.forEach(link => {
+    if (link.getAttribute("href") === currentPage) {
+      link.classList.add("active");
+    }
+  });
+
+</script>
+
+</body>
+</html>

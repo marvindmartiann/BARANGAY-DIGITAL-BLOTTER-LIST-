@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barangay Digital Services</title>
+<link rel="stylesheet" href="landingpgusr.css">
+</head>
+<body>
+  
+  <!-- Header -->
+  <header>
+    <div class="logo"><img src="logo 1.png" alt="Logo"></div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="slideshow-container">
+  <div class="slide fade">
+    <img src="sld1.png" alt="Barangay photo 1">
+  </div>
+
+  <div class="slide fade">
+    <img src="sld2.png" alt="Barangay photo 2">
+  </div>
+
+  <div class="slide fade">
+    <img src="sld3.png" alt="Barangay photo 3">
+  </div>
+</div>
+    <div class="hero-text">
+      <div class="title">Barangay Digital Blotter Services</div>
+      <p>File complaints, schedule appointments, and access services online.</p>
+      <button><a href="fac.html" class="complaint-btn">FILE A COMPLAINT</a></button>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section class="services">
+  <a href="appointment.html" class="service-box">
+    <div class="icon">📝</div>
+    <p>SET AN APPOINTMENT</p>
+  </a>
+
+  <a href="history.html" class="service-box">
+    <div class="icon">📜</div>
+    <p>HISTORY</p>
+  </a>
+
+  <a href="notif.html" class="service-box">
+    <div class="icon">🔔</div>
+    <p>NOTIFICATIONS</p>
+  </a>
+
+  <a href="profile.html" class="service-box">
+    <div class="icon">👤</div>
+    <p>ACCOUNT</p>
+  </a>
+</section>
+
+<hr class="divider">
+
+  <!-- Footer -->
+  <footer>
+    <div class="contacts">
+      <h3>Contacts</h3>
+      <p>📞 +639493452389</p>
+      <p>📧 Barangayservice@gmail.com</p>
+      <p>📍 Arellano St., Dagupan City</p>
+    </div>
+    <div class="social">
+      <h3>Follow Us</h3>
+      <p>Facebook: Barangay Digital Blotter Services</p>
+    </div>
+  </footer>
+
+  <script>
+    /*
+    ===========================================
+    ✅ CRITICAL: KICK-OUT OFFICIALS FROM USER PAGE
+    ===========================================
+    */
+    const user = JSON.parse(localStorage.getItem("user"));
+    
+    // 1. Redirect to login if NO user is stored.
+    if (!user) {
+        window.location.href = "login.html"; 
+        throw new Error("No user session.");
+    }
+    
+    // 2. Redirect to Admin Dashboard if the user is NOT a 'resident'.
+    if (user.user_type?.toLowerCase() !== "resident") {
+        console.warn("Official detected. Redirecting to Admin Dashboard.");
+        
+        // Ito ang gagawa ng trabaho mo: i-pilit na paalisin si Admin!
+        window.location.href = "admin/dashboard.html"; 
+        
+        throw new Error("Unauthorized user redirected."); 
+    }
+    
+    /* ---------------------------------------------------- */
+    // Kung nakarating dito, sigurado na RESIDENT siya.
+    /* ---------------------------------------------------- */
+let slideIndex = 0;
+showSlides();
+
+function showSlides() {
+  const slides = document.getElementsByClassName("slide");
+  for (let i = 0; i < slides.length; i++) {
+    slides[i].style.display = "none";
+  }
+  slideIndex++;
+  if (slideIndex > slides.length) { slideIndex = 1; }
+  slides[slideIndex - 1].style.display = "block";
+  setTimeout(showSlides, 3000); // Change image every 3 seconds
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="appointment.css"> <!-- shared header -->
+  <link rel="stylesheet" href="profile.css"> <!-- profile styles -->
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo"><img src="logo 1.png" alt="Logo"></div>
+    <nav>
+      <ul>
+        <li><a href="landingpgusr.html">Home</a></li>
+        <li><a href="fac.html">File Complaint</a></li>
+        <li><a href="appointment.html">Appointment</a></li>
+         <li><a href="history.html">History</a></li>
+        <li><a href="notif.html">Notifications</a></li>
+      </ul>
+    </nav>
+    <div class="profile-icon">
+      <a href="profile.html"><img src="account.png" alt="account"></a>
+    </div>
+  </header>
+
+  <!-- Profile Section -->
+  <section class="profile-container">
+    <h2>User Profile</h2>
+
+    <div class="profile-info">
+      <p><strong>Full Name:</strong> <span id="profileName">Loading...</span></p>
+      <p><strong>Address:</strong> <span id="profileAddress">Loading...</span></p>
+      <p><strong>Contact:</strong> <span id="profileContact">Loading...</span></p>
+      <p><strong>Email:</strong> <span id="profileEmail">Loading...</span></p>
+    </div>
+
+    <div class="profile-buttons">
+      <button class="edit-btn" id="editProfileBtn">Edit Profile</button>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+  </section>
+
+  <!-- 🧩 Edit Profile Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3>Edit Profile</h3>
+      <form id="editProfileForm">
+        <label>Full Name:</label>
+        <input type="text" id="editName" required>
+
+        <label>Address:</label>
+        <input type="text" id="editAddress" required>
+
+        <label>Contact:</label>
+        <input type="text" id="editContact" required>
+
+        <label>Email:</label>
+        <input type="email" id="editEmail" required>
+
+        <div class="modal-buttons">
+          <button type="submit" class="save-btn">Save</button>
+          <button type="button" class="cancel-btn" id="cancelEdit">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    // ✅ Redirect if not logged in
+    if (!user) {
+      alert("⚠️ You must be logged in to view your profile.");
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("profileName").textContent = user.name || "N/A";
+      document.getElementById("profileAddress").textContent = user.address || "N/A";
+      document.getElementById("profileContact").textContent = user.contact || "N/A";
+      document.getElementById("profileEmail").textContent = user.email || "N/A";
+    }
+
+    const modal = document.getElementById("editModal");
+    const editBtn = document.getElementById("editProfileBtn");
+    const cancelBtn = document.getElementById("cancelEdit");
+
+    // ✅ Open modal
+    editBtn.addEventListener("click", () => {
+      modal.style.display = "flex";
+      document.getElementById("editName").value = user.name || "";
+      document.getElementById("editAddress").value = user.address || "";
+      document.getElementById("editContact").value = user.contact || "";
+      document.getElementById("editEmail").value = user.email || "";
+    });
+
+    // ✅ Close modal
+    cancelBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    // ✅ Save changes
+    document.getElementById("editProfileForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const updatedUser = {
+        id: user.id,
+        name: document.getElementById("editName").value,
+        address: document.getElementById("editAddress").value,
+        contact: document.getElementById("editContact").value,
+        email: document.getElementById("editEmail").value
+      };
+
+      try {
+        const res = await fetch("http://localhost:8081/update-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedUser)
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert("✅ Profile updated successfully!");
+
+          // ✅ Ensure full user data stays updated in localStorage
+          const updatedLocalUser = {
+            ...user, // keep other unchanged properties (like password, id, etc.)
+            name: updatedUser.name,
+            address: updatedUser.address,
+            contact: updatedUser.contact,
+            email: updatedUser.email
+          };
+
+          localStorage.setItem("user", JSON.stringify(updatedLocalUser));
+
+          // ✅ Reflect changes immediately on screen
+          document.getElementById("profileName").textContent = updatedLocalUser.name;
+          document.getElementById("profileAddress").textContent = updatedLocalUser.address;
+          document.getElementById("profileContact").textContent = updatedLocalUser.contact;
+          document.getElementById("profileEmail").textContent = updatedLocalUser.email;
+
+          modal.style.display = "none"; // close modal
+
+        } else {
+          alert("❌ Failed to update profile.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("⚠️ Server error while updating profile.");
+      }
+    });
+
+    // ✅ Logout
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      if (confirm("Are you sure you want to logout?")) {
+        localStorage.clear();
+        window.location.href = "login.html";
+      }
+    });
+
+  // ✅ Highlight active navigation link
+  const currentPage = window.location.pathname.split("/").pop();
+  const navLinks = document.querySelectorAll("header nav ul li a");
+
+  navLinks.forEach(link => {
+    if (link.getAttribute("href") === currentPage) {
+      link.classList.add("active");
+    }
+  });
+
+  // ✅ Highlight profile icon when on profile.html
+  const profileIcon = document.querySelector(".profile-icon");
+  if (currentPage === "profile.html") {
+    profileIcon.classList.add("active");
+  }
+
+  </script>
+
+</body>
+</html>

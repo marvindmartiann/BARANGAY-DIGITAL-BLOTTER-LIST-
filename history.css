@@ -1,0 +1,226 @@
+ body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f9fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #007B8E;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 40px;
+      z-index: 1000;
+    }
+
+    .logo {
+    width: 100px;   /* fix container size */
+    height: 100px;  /* square box */
+    overflow: hidden; /* putol yung sobra */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+
+    .logo img {
+    max-width: 160%;
+    max-height: 160%;
+    }
+
+    header nav ul {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+    margin-left: 1190px;
+    padding: 0;
+    }
+
+    header nav ul li a {
+    color: white;
+    font-size: 18px;
+    text-decoration: none;
+    font-weight: bold;
+    }
+
+    header .profile-icon img {
+    margin-right: 85px;
+    width: 50px;       /* adjust ayon sa gusto mo */
+    height: 50px;      /* adjust ayon sa gusto mo */
+    object-fit: cover; /* para hindi ma-stretch o ma-distort */
+    border-radius: 50%; /* optional: para maging bilog */
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1400px;
+      margin-top: 100px;
+      margin-bottom: 0px;
+      background: white;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Extra styles for scrollable tables and filters */
+    .table-container {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .search-bar {
+      margin-bottom: 10px;
+      padding: 15px;
+      width: 270px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      font-size: 18px;
+    }
+
+    .refresh-btn {
+      margin-left: 10px;
+      padding: 5px 10px;
+      border: none;
+      background-color: #007B8E;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .refresh-btn:hover {
+      background-color: #007B8E;
+    }
+
+    .no-data {
+      text-align: center;
+      color: gray;
+    }
+
+    h1 {
+      color: #007B8E;
+      text-align: center; 
+      padding-bottom: 15px; 
+    }
+
+    h2 {
+      color: #007B8E;
+      border-bottom: 2px solid #007B8E;
+      padding-bottom: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #007B8E;
+      color: white;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    .no-data {
+      text-align: center;
+      color: #777;
+      padding: 10px;
+    }
+
+    .refresh-btn {
+      background-color: #007B8E;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      float: right;
+      font-size: 16px;
+    }
+
+    .refresh-btn:hover {
+      background-color: #005f6b;
+    }
+
+    /* ✅ NAVBAR LINK EFFECTS */
+header nav ul li {
+  position: relative;
+}
+
+header nav ul li a {
+  color: white;
+  font-size: 18px;
+  text-decoration: none;
+  font-weight: bold;
+  padding-bottom: 5px;
+  transition: color 0.3s ease;
+}
+
+/* Hover underline animation */
+header nav ul li a::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: white;
+  transition: width 0.3s ease;
+}
+
+/* On hover */
+header nav ul li a:hover {
+  color: #d4f4f9;
+}
+
+header nav ul li a:hover::after {
+  width: 100%;
+}
+
+/* ✅ Active Page Highlight */
+header nav ul li a.active {
+  color: #d4f4f9;
+}
+
+header nav ul li a.active::after {
+  width: 100%;
+}
