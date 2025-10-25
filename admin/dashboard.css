@@ -1,37 +1,64 @@
 /* ===================== GLOBAL ===================== */
+/* 1. Style the main body/HTML structure */
 body {
-  font-family: Arial, sans-serif;
-  display: flex;
-  margin: 0;
-  background-color: #f7fafc;
+    margin: 0; /* Remove default body margins */
+    padding: 0;
+    font-family: Arial, sans-serif; /* Example font */
+    display: flex; /* Use flexbox to manage the sidebar and content layout */
 }
 
-/* ===================== SIDEBAR ===================== */
+h2 {
+  padding-left: 40px;
+}
+
+/* 2. Fix the Sidebar in position */
 .sidebar {
-  width: 220px;
-  background-color: #007B8E; /* 💠 Sidebar Color */
-  color: white;
-  height: 160vh;
-  padding: 20px;
+    /* Critical properties for fixed position */
+    position: fixed; 
+    top: 0;
+    left: 0;
+    height: 100vh; /* 100% of viewport height */
+    width: 250px; /* Define the sidebar width */
+    
+    /* Aesthetics (adjust as needed) */
+    background-color: #007B8E; /* Example background color */
+    color: white;
+    padding-top: 20px;
+    overflow-y: auto; /* Allows the sidebar to scroll internally if its content is too long */
+    z-index: 1000; /* Ensure it stays above other elements */
 }
 
-.sidebar a {
-  display: block;
-  color: white;
-  padding: 10px;
-  text-decoration: none;
-  border-radius: 8px;
-  margin: 5px 0;
-}
-
-.sidebar a.active, .sidebar a:hover {
-  background-color: #0a5b69; /* 💠 Hover/Active Sidebar Item Color */
-}
-
-/* ===================== MAIN ===================== */
+/* 3. Push the main content away from the sidebar */
 .main-content {
-  flex-grow: 1;
-  padding: 20px;
+    /* Critical property: offset the main content by the width of the fixed sidebar */
+    margin-left: 250px; /* Must match the .sidebar width */
+
+    /* Ensure main content takes up the rest of the space */
+    flex-grow: 1; 
+
+    /* Aesthetics (adjust as needed) */
+    padding: 20px;
+    /* This content will now scroll normally */
+}
+
+/* (Existing styles for sidebar links would follow, e.g.) */
+.sidebar a {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: white;
+}
+
+.sidebar a:hover {
+    /* Use the same background color as your active link */
+    background-color: #0a5b69; 
+    transform: translateX(5px);
+    transition: all 0.25s ease-in-out;
+       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); 
+}
+
+.sidebar a.active {
+    background-color: #0a5b69; /* Active link color */
 }
 
 /* ===================== DASHBOARD CARDS ===================== */
@@ -282,7 +309,8 @@ h1, h3 {
     .dropdown { margin-bottom: 20px; }
     .dropdown summary { cursor: pointer; background-color: #007B8E; color: white; padding: 10px; border-radius: 4px; }
     .dropdown-content { border: 1px solid #ccc; padding: 10px; margin-top: 5px; }
-    
+
+
 
 
 

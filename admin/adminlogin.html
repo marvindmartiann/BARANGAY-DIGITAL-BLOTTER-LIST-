@@ -10,7 +10,7 @@
   <div class="login-container">
     <h2>Official/Admin Login</h2>
     <form id="loginForm">
-            <div class="form-group">
+      <div class="form-group">
         <label for="email">Email</label>
         <input type="email" id="email" placeholder="Enter your email" required>
       </div>
@@ -21,11 +21,7 @@
         <span class="toggle-password" onclick="togglePassword('password')" title="Show / Hide password">👁</span>
       </div>
 
-      <span class="forgot">Forgot Password?</span>
-
       <button type="submit">Login</button>
-
-      <p class="register-text">Don’t have an account? <a href="reg.html">Register</a></p>
     </form>
   </div>
 
@@ -47,8 +43,20 @@
       return;
     }
 
+    // ⭐ FRONTEND SECURITY/UX CHECK: Enforce the specific admin email
+    const REQUIRED_ADMIN_EMAIL = "admintest@gmail.com";
+    
+    if (email !== REQUIRED_ADMIN_EMAIL) {
+      alert("🚫 Access denied. This email is not authorized for the Official/Admin Login.");
+      document.getElementById("email").value = ""; 
+      document.getElementById("password").value = "";
+      return;
+    }
+    // ⭐ END FRONTEND CHECK
+
     try {
-      const response = await fetch("http://localhost:8081/login", {
+      // ⭐ CRITICAL: Use the secure, dedicated admin endpoint
+      const response = await fetch("http://localhost:8081/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -57,20 +65,16 @@
       const result = await response.json();
 
       if (response.ok && result.user) {
-        const userType = result.user.user_type?.toLowerCase();
-
-        if (userType === "official") {
-            alert("✅ Admin Login successful!");
-            localStorage.setItem("user", JSON.stringify(result.user));
-            // ✅ Direct path to dashboard.html inside the admin folder
-            window.location.href = "dashboard.html";
-        } else {
-          // 🛑 CRITICAL: If a RESIDENT tries to log in here, reject them.
-          localStorage.removeItem("user");
-          alert("Access denied: You are not authorized to use the Admin Login.");
-        }
+        // The backend /admin/login ensures user_type is 'Official', 
+        // so we just check for a successful response.
+        alert("✅ Admin Login successful!");
+        localStorage.setItem("user", JSON.stringify(result.user));
+        // ✅ Direct path to dashboard.html inside the admin folder
+        window.location.href = "../admin/dashboard.html";
       } else {
-        alert(result.message || "❌ Invalid email or password.");
+        // This handles invalid credentials OR the backend's 403 Forbidden response
+        alert(result.message || "❌ Invalid email or password or unauthorized access.");
+        localStorage.removeItem("user");
       }
 
     } catch (error) {
