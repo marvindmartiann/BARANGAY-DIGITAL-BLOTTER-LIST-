@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Profile</title>
-  <link rel="stylesheet" href="appointment.css"> <!-- shared header -->
-  <link rel="stylesheet" href="profile.css"> <!-- profile styles -->
+  <title>User Profile | Barangay System</title>
+  <link rel="stylesheet" href="appointment.css">
+  <link rel="stylesheet" href="profile.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 
-  <!-- Header -->
   <header>
     <div class="logo"><img src="logo 1.png" alt="Logo"></div>
     <nav>
@@ -21,137 +21,258 @@
         <li><a href="notif.html">Notifications</a></li>
       </ul>
     </nav>
-    <div class="profile-icon">
+    <div class="profile-icon active"> 
       <a href="profile.html"><img src="account.png" alt="account"></a>
     </div>
   </header>
 
-  <!-- Profile Section -->
-  <section class="profile-container">
-    <h2>User Profile</h2>
-
-    <div class="profile-info">
-      <p><strong>Full Name:</strong> <span id="profileName">Loading...</span></p>
-      <p><strong>Address:</strong> <span id="profileAddress">Loading...</span></p>
-      <p><strong>Contact:</strong> <span id="profileContact">Loading...</span></p>
-      <p><strong>Email:</strong> <span id="profileEmail">Loading...</span></p>
-    </div>
-
-    <div class="profile-buttons">
-      <button class="edit-btn" id="editProfileBtn">Edit Profile</button>
-      <button class="logout-btn" id="logoutBtn">Logout</button>
-    </div>
-  </section>
-
-  <!-- 🧩 Edit Profile Modal -->
-  <div id="editModal" class="modal">
-    <div class="modal-content">
-      <h3>Edit Profile</h3>
-      <form id="editProfileForm">
-        <label>Full Name:</label>
-        <input type="text" id="editName" required>
-
-        <label>Address:</label>
-        <input type="text" id="editAddress" required>
-
-        <label>Contact:</label>
-        <input type="text" id="editContact" required>
-
-        <label>Email:</label>
-        <input type="email" id="editEmail" required>
-
-        <div class="modal-buttons">
-          <button type="submit" class="save-btn">Save</button>
-          <button type="button" class="cancel-btn" id="cancelEdit">Cancel</button>
+  <div class="main-content-wrapper">
+    <div class="profile-page-container">
+      
+      <div class="profile-info-card">
+        <div class="profile-header-title">My Profile</div>
+        
+        <div class="profile-header-details">
+          <div class="avatar-col">
+            <img src="account.png" alt="User Avatar" class="profile-avatar">
+          </div>
+          
+          <div class="info-grid">
+            <p><strong>Full Name:</strong> <span id="profileName">Loading...</span></p>
+            <p><strong>Email:</strong> <span id="profileEmail">Loading...</span></p>
+            <p><strong>Address:</strong> <span id="profileAddress">Loading...</span></p>
+            <p><strong>Phone:</strong> <span id="profileContact">Loading...</span></p>
+            <p><strong>Role:</strong> <span id="profileRole">Resident</span></p>
+          </div>
         </div>
-      </form>
+      </div>
+      
+      <div class="form-card">
+        <div class="card-title">Edit Personal Info</div>
+        <form id="editProfileForm">
+          <div class="form-grid">
+            <div>
+              <label for="editFirstName">First Name:</label>
+              <input type="text" id="editFirstName" required>
+            </div>
+            <div>
+              <label for="editLastName">Last Name:</label>
+              <input type="text" id="editLastName" required>
+            </div>
+            <div>
+              <label for="editContact">Phone Number:</label>
+              <input type="text" id="editContact" pattern="[0-9]{11,15}" title="Contact must be a valid phone number." required>
+            </div>
+          </div>
+          <label for="editAddress">Address:</label>
+          <textarea id="editAddress" rows="3" required></textarea>
+
+          <button type="submit" class="save-btn action-btn">Save Changes</button>
+        </form>
+      </div>
+
+      <div class="form-card">
+        <div class="card-title">Change Password</div>
+        <form id="changePasswordForm">
+          <div class="form-grid password-grid">
+            
+            <div>
+              <label for="currentPassword">Current Password:</label>
+              <div class="password-field-container">
+                <input type="password" id="currentPassword" required>
+                <span class="password-toggle-icon" onclick="togglePasswordVisibility(this)">
+                    <i class="fas fa-eye"></i> </span>
+              </div>
+            </div>
+            
+            <div>
+              <label for="newPassword">New Password:</label>
+              <div class="password-field-container">
+                <input type="password" id="newPassword" required>
+                <span class="password-toggle-icon" onclick="togglePasswordVisibility(this)">
+                    <i class="fas fa-eye"></i>
+                </span>
+              </div>
+            </div>
+            
+            <div>
+              <label for="confirmNewPassword">Confirm New Password:</label>
+              <div class="password-field-container">
+                <input type="password" id="confirmNewPassword" required>
+                <span class="password-toggle-icon" onclick="togglePasswordVisibility(this)">
+                    <i class="fas fa-eye"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="password-btn action-btn">Change Password</button>
+        </form>
+      </div>
+      
+      <button class="logout-btn action-btn" id="logoutBtn">Logout</button>
     </div>
   </div>
 
   <script>
     const user = JSON.parse(localStorage.getItem("user"));
+    const currentUserId = user ? user.id : null;
 
-    // ✅ Redirect if not logged in
+    // Helper function to format the full name into first and last
+    const parseName = (fullName) => {
+      if (!fullName) return { first: "", last: "" };
+      const parts = fullName.split(' ');
+      const firstName = parts[0] || "";
+      const lastName = parts.slice(1).join(' ') || "";
+      return { first: firstName, last: lastName };
+    };
+
+    // --- Access Control and Initial Load ---
     if (!user) {
       alert("⚠️ You must be logged in to view your profile.");
       window.location.href = "login.html";
-    } else {
+      throw new Error("User not logged in."); // Stop script execution
+    }
+
+    const loadProfileData = () => {
+      const { first, last } = parseName(user.name);
+
+      // Display Info
       document.getElementById("profileName").textContent = user.name || "N/A";
       document.getElementById("profileAddress").textContent = user.address || "N/A";
       document.getElementById("profileContact").textContent = user.contact || "N/A";
       document.getElementById("profileEmail").textContent = user.email || "N/A";
-    }
-
-    const modal = document.getElementById("editModal");
-    const editBtn = document.getElementById("editProfileBtn");
-    const cancelBtn = document.getElementById("cancelEdit");
-
-    // ✅ Open modal
-    editBtn.addEventListener("click", () => {
-      modal.style.display = "flex";
-      document.getElementById("editName").value = user.name || "";
+      document.getElementById("profileRole").textContent = user.user_type || "Resident";
+      
+      // Pre-fill Edit Form
+      document.getElementById("editFirstName").value = first;
+      document.getElementById("editLastName").value = last;
       document.getElementById("editAddress").value = user.address || "";
       document.getElementById("editContact").value = user.contact || "";
-      document.getElementById("editEmail").value = user.email || "";
-    });
+    };
 
-    // ✅ Close modal
-    cancelBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
+    loadProfileData();
 
-    // ✅ Save changes
+    // 🔑 NEW JAVASCRIPT FUNCTION FOR PASSWORD TOGGLE VISIBILITY 🔑
+    /**
+     * Toggles the visibility of the password input field when the eye icon is clicked.
+     * It changes the input type and the Font Awesome icon class.
+     * @param {HTMLElement} iconElement The span element with class .password-toggle-icon.
+     */
+    function togglePasswordVisibility(iconElement) {
+        // 1. Get the target input field (the previous sibling of the span)
+        const passwordInput = iconElement.previousElementSibling;
+        
+        // 2. Get the icon element itself (the <i> tag)
+        const eyeIcon = iconElement.querySelector('.fas');
+
+        // 3. Toggle the input type and icon class
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            
+            // Change from eye (visible) to eye-slash (hidden)
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash'); 
+            iconElement.classList.add('visible'); // For CSS styling
+        } else {
+            passwordInput.type = "password";
+            
+            // Change from eye-slash (hidden) to eye (visible)
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+            iconElement.classList.remove('visible'); // For CSS styling
+        }
+    }
+    
+    // --- Form Submission Handlers ---
+    
+    // Save Profile Changes
     document.getElementById("editProfileForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const updatedUser = {
-        id: user.id,
-        name: document.getElementById("editName").value,
+      const firstName = document.getElementById("editFirstName").value;
+      const lastName = document.getElementById("editLastName").value;
+      const newName = `${firstName} ${lastName}`.trim();
+
+      const updatedFields = {
+        name: newName,
         address: document.getElementById("editAddress").value,
         contact: document.getElementById("editContact").value,
-        email: document.getElementById("editEmail").value
       };
 
       try {
-        const res = await fetch("http://localhost:8081/update-profile", {
-          method: "POST",
+        const res = await fetch(`http://localhost:8081/api/users/${currentUserId}/update-profile`, {
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedUser)
+          body: JSON.stringify(updatedFields)
         });
 
-        const data = await res.json();
-        if (data.success) {
-          alert("✅ Profile updated successfully!");
-
-          // ✅ Ensure full user data stays updated in localStorage
-          const updatedLocalUser = {
-            ...user, // keep other unchanged properties (like password, id, etc.)
-            name: updatedUser.name,
-            address: updatedUser.address,
-            contact: updatedUser.contact,
-            email: updatedUser.email
-          };
-
+        if (res.ok) {
+          const updatedLocalUser = { ...user, ...updatedFields };
           localStorage.setItem("user", JSON.stringify(updatedLocalUser));
-
-          // ✅ Reflect changes immediately on screen
-          document.getElementById("profileName").textContent = updatedLocalUser.name;
-          document.getElementById("profileAddress").textContent = updatedLocalUser.address;
-          document.getElementById("profileContact").textContent = updatedLocalUser.contact;
-          document.getElementById("profileEmail").textContent = updatedLocalUser.email;
-
-          modal.style.display = "none"; // close modal
-
+          
+          alert("✅ Profile updated successfully!");
+          loadProfileData(); 
         } else {
-          alert("❌ Failed to update profile.");
+           const errorData = await res.json();
+           alert(`❌ Failed to update profile: ${errorData.message || 'Server error'}`);
         }
       } catch (err) {
-        console.error(err);
-        alert("⚠️ Server error while updating profile.");
+        console.error("Profile update error:", err);
+        alert("⚠️ Network error or server is unavailable.");
       }
     });
 
-    // ✅ Logout
+    // Change Password
+    document.getElementById("changePasswordForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const current = document.getElementById("currentPassword").value;
+      const newPass = document.getElementById("newPassword").value;
+      const confirmNew = document.getElementById("confirmNewPassword").value;
+
+      if (newPass !== confirmNew) {
+        alert("❌ New Password and Confirm Password do not match!");
+        return;
+      }
+      
+      if (newPass.length < 6) {
+        alert("❌ Password must be at least 6 characters long.");
+        return;
+      }
+      
+      // Clear fields immediately
+      document.getElementById("currentPassword").value = '';
+      document.getElementById("newPassword").value = '';
+      document.getElementById("confirmNewPassword").value = '';
+
+      const passwordData = {
+        currentPassword: current,
+        newPassword: newPass,
+        userId: currentUserId 
+      };
+
+      try {
+        const res = await fetch(`http://localhost:8081/api/users/${currentUserId}/change-password`, {
+          method: "POST", 
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(passwordData)
+        });
+
+        if (res.ok) {
+          alert("✅ Password changed successfully! Please log in again with your new password.");
+          localStorage.clear();
+          window.location.href = "login.html";
+        } else {
+           const errorData = await res.json();
+           alert(`❌ Failed to change password: ${errorData.message || 'Incorrect current password or server error.'}`);
+        }
+      } catch (err) {
+        console.error("Password change error:", err);
+        alert("⚠️ Network error or server is unavailable.");
+      }
+    });
+    
+    // --- Logout Handler ---
     document.getElementById("logoutBtn").addEventListener("click", () => {
       if (confirm("Are you sure you want to logout?")) {
         localStorage.clear();
@@ -159,22 +280,15 @@
       }
     });
 
-  // ✅ Highlight active navigation link
-  const currentPage = window.location.pathname.split("/").pop();
-  const navLinks = document.querySelectorAll("header nav ul li a");
+    // --- Navigation Active Highlighting (Kept the same) ---
+    const currentPage = window.location.pathname.split("/").pop();
+    const navLinks = document.querySelectorAll("header nav ul li a");
 
-  navLinks.forEach(link => {
-    if (link.getAttribute("href") === currentPage) {
-      link.classList.add("active");
-    }
-  });
-
-  // ✅ Highlight profile icon when on profile.html
-  const profileIcon = document.querySelector(".profile-icon");
-  if (currentPage === "profile.html") {
-    profileIcon.classList.add("active");
-  }
-
+    navLinks.forEach(link => {
+      if (link.getAttribute("href") === currentPage) {
+        link.classList.add("active");
+      }
+    });
   </script>
 
 </body>

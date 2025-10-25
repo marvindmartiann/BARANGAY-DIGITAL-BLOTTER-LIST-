@@ -3,37 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login</title>
+  <title>Sign In</title>
   <link rel="stylesheet" href="login.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-  <div class="login-container">
-    <h2>Login</h2>
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="Enter your email" required>
+  <div class="split-container">
+    
+    <div class="welcome-section">
+      <div class="welcome-content">
+        <img src="logo 1.png" alt="BDBS Logo" class="welcome-logo">
+        <h1>Welcome, User!</h1>
+        <p>The Barangay Digital Blotter Services lets you report incidents, follow up on cases, and stay connected with your barangay – anytime, anywhere.</p>
+      </div>
       </div>
 
-      <div class="form-group password-wrapper">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Enter your password" required>
-        <span class="toggle-password" onclick="togglePassword('password')" title="Show / Hide password">👁</span>
+    <div class="login-section">
+      <div class="login-card">
+        <h2>Sign In</h2>
+        <form id="loginForm">
+          
+          <div class="form-group icon-input">
+            <i class="fas fa-user"></i>
+            <input type="email" id="email" placeholder="Username or email" required>
+          </div>
+
+          <div class="form-group icon-input password-wrapper">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" placeholder="Password" required>
+            <span class="password-toggle-icon" onclick="togglePasswordVisibility('password')">
+                <i class="far fa-eye"></i>
+            </span>
+          </div>
+          
+          <button type="submit" class="sign-in-btn">Sign In</button>
+
+          <p class="register-text">New here? <a href="reg.html">Create an Account</a></p>
+        </form>
       </div>
+    </div>
 
-      <span class="forgot">Forgot Password?</span>
-
-      <button type="submit">Login</button>
-
-      <p class="register-text">Don’t have an account? <a href="reg.html">Register</a></p>
-    </form>
   </div>
 
 <script>
-  // 👁 Toggle password visibility
-  function togglePassword(id) {
+  // 🔑 Updated Toggle Password Function using Font Awesome
+  function togglePasswordVisibility(id) {
     const input = document.getElementById(id);
-    input.type = (input.type === "password") ? "text" : "password";
+    const icon = input.parentElement.querySelector('.password-toggle-icon i');
+
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
   }
 
   document.getElementById("loginForm").addEventListener("submit", async function(event) {
@@ -48,6 +74,7 @@
     }
 
     try {
+      // Use the generic /login endpoint
       const response = await fetch("http://localhost:8081/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -56,28 +83,27 @@
 
       const result = await response.json();
 
-     if (response.ok && result.user) {
-            alert("✅ Login successful!");
-            localStorage.setItem("user", JSON.stringify(result.user));
+      if (response.ok && result.user) {
+          const userType = result.user.user_type?.toLowerCase();
 
-            const userType = result.user.user_type?.toLowerCase();
+          if (userType === "resident") {
+            // ✅ Success: Resident -> User Landing Page
+            alert("✅ Login successful!");
+            localStorage.setItem("user", JSON.stringify(result.user));
+            window.location.href = "landingpgusr.html";
+          } else if (userType === "official") {
+            // 🛑 Reject OFFICIALS and redirect to their specific login page.
+            localStorage.removeItem("user");
+            alert("Access denied: You are an Official. Please use the designated Admin Login page.");
+            window.location.href = "adminlogin.html"; 
+          } else {
+            // Fallback for any unknown user type
+            localStorage.removeItem("user");
+            alert("Access denied: Invalid user type.");
+          }
+          return;
 
-            if (userType === "resident") {
-              // Resident -> User Landing Page
-              window.location.href = "landingpgusr.html";
-            } else if (userType === "official") {
-              // 🛑 CRITICAL: Redirect OFFICIALS to the correct admin login page.
-              localStorage.removeItem("user");
-              alert("Access denied: You must use the official Admin Login page.");
-              window.location.href = "adminlogin.html"; // <-- Use your new filename
-            } else {
-              // Fallback for any unknown user type
-              localStorage.removeItem("user");
-              alert("Access denied: Invalid user type.");
-            }
-            return;
-
-          } else {
+      } else {
         alert(result.message || "❌ Invalid email or password.");
       }
 

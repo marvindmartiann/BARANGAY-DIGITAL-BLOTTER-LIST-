@@ -1,275 +1,261 @@
-/* Profile-specific styles */
-     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f9fa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      flex-direction: column;
-    }
+/*
+ * PROFILE.CSS
+ * Styles for the new profile layout based on the inspiration image.
+ * Adjusted for 6 items in the info-grid.
+ */
 
-    header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: #007B8E;
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 5px 40px;
-      z-index: 1000;
-    }
+ /* --- Styles for Profile Icon Indication --- */
 
-    .logo {
-    width: 100px;   /* fix container size */
-    height: 100px;  /* square box */
-    overflow: hidden; /* putol yung sobra */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    }
-
-    .logo img {
-    max-width: 160%;
-    max-height: 160%;
-    }
-
-    header nav ul {
-    list-style: none;
-    display: flex;
-    gap: 25px;
-    margin-left: 1190px;
+/* The profile icon image itself */
+header .profile-icon img {
+    margin-right: 85px; /* Keeps your existing margin */
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+    /* Add transition for a smooth visual effect */
+    transition: all 0.3s ease-in-out; 
+    border: 3px solid transparent; /* Base border for spacing consistency */
     padding: 0;
-    }
+}
 
-    header nav ul li a {
-    color: white;
-    font-size: 18px;
-    text-decoration: none;
+/* 🌟 ACTIVE STATE: Applies when on profile.html 🌟 */
+.profile-icon.active img {
+    /* To match the dark theme, let's use a bright blue glow */
+    border: 3px solid white; /* Bright blue border */
+    transform: scale(1); /* Slight enlargement */
+}
+
+/* Optional: Add hover state for interactivity */
+.profile-icon:hover img {
+    opacity: 0.8;
+}
+
+body {
+    background-color: #f0f0f0; /* Light gray background */
+    font-family: Arial, sans-serif;
+}
+
+/* Ensure header style from appointment.css is respected */
+/* Overriding the body's display flex to center content below the fixed header */
+.main-content-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 140px 20px 40px; /* Add padding to clear the fixed header */
+    box-sizing: border-box;
+    min-height: 100vh;
+}
+
+.profile-page-container {
+    width: 100%;
+    max-width: 800px; /* Max width for the whole content area */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* --- Card Styles --- */
+
+.profile-info-card, .form-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px 30px;
+}
+
+/* --- Top Profile Card (Header) --- */
+.profile-info-card {
+    background: #007B8E; /* Dark background for the main profile section */
+    color: #fff;
+    padding-bottom: 30px;
+}
+
+.profile-header-title {
+    font-size: 1.5em;
     font-weight: bold;
-    }
-
-    header .profile-icon img {
-    margin-right: 85px;
-    width: 50px;       /* adjust ayon sa gusto mo */
-    height: 50px;      /* adjust ayon sa gusto mo */
-    object-fit: cover; /* para hindi ma-stretch o ma-distort */
-    border-radius: 50%; /* optional: para maging bilog */
-    }
-
-.profile-container {
-  margin-top: 100px;
-  background: white;
-  padding: 50px 60px;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  width: 750px;
-  text-align: center;
+    margin-bottom: 20px;
 }
 
-.profile-container h2 {
-  color: #007B8E;
-  margin-bottom: 45px;
-  font-size: 32px;
-  text-align: center;
+.profile-header-details {
+    display: flex;
+    gap: 30px;
+    align-items: center;
 }
 
-.profile-info {
-  text-align: left;
-  font-size: 22px;
-  margin-bottom: 45px;
-  color: #333;
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white; /* Blue border for avatar */
 }
 
-.profile-info p {
-  margin: 12px 0;
-  padding: 20px;
-  background: #f4f9fa;
-  border-radius: 8px;
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    gap: 8px 30px;
+    flex-grow: 1;
 }
 
-.profile-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
+.info-grid p {
+    margin: 0;
+    font-size: 0.95em;
+    line-height: 1.4;
 }
 
-.profile-buttons button {
-  padding: 12px 25px;
-  border: none;
-  border-radius: 10px;
-  font-size: 22px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s;
+.info-grid strong {
+    color: white; /* Lighter color for labels */
+    font-weight: normal;
+    margin-right: 5px;
 }
 
-.edit-btn {
-  background: #007B8E;
-  color: white;
+/* --- Form Cards (Edit Info & Change Password) --- */
+.card-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
 }
 
-.edit-btn:hover {
-  background: #005f6e;
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 20px;
+    margin-bottom: 15px;
 }
 
-.logout-btn {
-  background: #ff5252;
-  color: white;
+/* Make password grid 3 columns */
+.password-grid {
+    grid-template-columns: 1fr 1fr 1fr;
 }
 
-.logout-btn:hover {
-  background: #d32f2f;
+label {
+    display: block;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 5px;
+    font-size: 0.9em;
 }
 
-/* 🧩 Modal Styling */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s;
 }
 
-.modal-content {
-  background: white;
-  padding: 30px 40px;
-  border-radius: 15px;
-  width: 650px;
-  max-width: 100%;
-  text-align: left;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+input:focus, textarea:focus {
+    border-color: #007bff;
+    outline: none;
 }
 
-.modal-content h3 {
-  text-align: center;
-  color: #007B8E;
-  margin-bottom: 20px;
-  font-size: 32px;
+textarea {
+    resize: vertical;
+    margin-bottom: 15px;
 }
 
-.modal-content label {
-  font-weight: bold;
-  display: block;
-  margin-top: 10px;
-}
-
-.modal-content input {
-  width: 97%;
-  padding: 8px;
-  font-size: 22px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  margin-top: 5px;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-  gap: 15px;
+/* --- Buttons --- */
+.action-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background-color 0.3s;
 }
 
 .save-btn {
-  background: #007B8E;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 22px;
+    background-color: #007B8E; /* Blue */
+    color: white;
 }
 
 .save-btn:hover {
-  background: #005f6e;
+    background-color: #0a5b69;
 }
 
-.cancel-btn {
-  background: #ff5252;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 22px;
+.password-btn {
+    background-color: #007B8E; /* Cyan */
+    color: white;
 }
 
-.cancel-btn:hover {
-  background: #d32f2f;
+.password-btn:hover {
+    background-color: #0a5b69;
 }
 
-/* ✅ NAVBAR LINK EFFECTS */
-header nav ul li {
-  position: relative;
+/* --- Password Toggle Visibility Styles --- */
+
+/* Container to position the icon absolutely relative to the input */
+.password-field-container {
+    position: relative; 
+    /* Ensures the input takes full width if placed inside a grid div */
+    width: 100%; 
 }
 
-header nav ul li a {
-  color: white;
-  font-size: 18px;
-  text-decoration: none;
-  font-weight: bold;
-  padding-bottom: 5px;
-  transition: color 0.3s ease;
+/* Position and style the toggle icon */
+.password-toggle-icon {
+    position: absolute;
+    top: 50%; /* Center vertically */
+    right: 15px; /* Adjust spacing from the right edge */
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d; /* Default icon color (gray) */
+    font-size: 16px;
+    user-select: none; /* Prevents text selection when clicking the icon */
+    z-index: 10; /* Ensures the icon is above the input field */
 }
 
-/* Hover underline animation */
-header nav ul li a::after {
-  content: "";
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0%;
-  height: 2px;
-  background-color: white;
-  transition: width 0.3s ease;
+/* Adjust the input padding to make room for the icon */
+.password-field-container input[type="password"],
+.password-field-container input[type="text"] {
+    width: 100%;
+    padding-right: 40px; /* Crucial: ensures text doesn't flow under the icon */
+    box-sizing: border-box;
 }
 
-/* On hover */
-header nav ul li a:hover {
-  color: #d4f4f9;
+/* Optional: style for when the password is shown */
+.password-toggle-icon.visible {
+    color: #007B8E; /* Example: Change color when visible */
 }
 
-header nav ul li a:hover::after {
-  width: 100%;
+.logout-btn {
+    background-color: #dc3545; /* Red */
+    color: white;
+    width: 100%;
+    margin-top: 10px;
 }
 
-/* ✅ Active Page Highlight */
-header nav ul li a.active {
-  color: #d4f4f9;
+.logout-btn:hover {
+    background-color: #c82333;
 }
 
-header nav ul li a.active::after {
-  width: 100%;
+/* --- Responsive Adjustments --- */
+@media (max-width: 600px) {
+    .profile-info-card, .form-card {
+        padding: 15px;
+    }
+
+    .profile-header-details {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr; /* Stack columns on small screens */
+        gap: 5px;
+        text-align: left;
+    }
+    
+    .form-grid, .password-grid {
+        grid-template-columns: 1fr; /* Stack form fields */
+    }
 }
-
-/* ✅ Profile Icon Active State */
-.profile-icon {
-  position: relative;
-}
-
-.profile-icon img {
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
-}
-
-/* Hover effect (optional, para consistent sa nav links) */
-.profile-icon img:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 2px rgba(255, 255, 255, 0.7);
-}
-
-/* Active page highlight (Profile Page) */
-.profile-icon.active img {
-  border: 3px solid #d4f4f9; /* white-blue glow border */
-  padding: 3px;
-  box-shadow: 0 0 10px #d4f4f9;
-}
-
-

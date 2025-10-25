@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Official Admin Login | BDBS</title>
+    <!-- Uses the common login.css for consistent look and feel -->
+    <link rel="stylesheet" href="adminlogin.css"> 
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div class="split-container">
+        <!-- LEFT SIDE: WELCOME SECTION (Admin Content) -->
+        <div class="welcome-section">
+            <div class="welcome-content">
+                <!-- Logo remains centered and large, using the same class -->
+                <img src="logo 1.png" alt="BDBS Logo" class="welcome-logo">
+                
+                <!-- Admin-specific Welcome Text -->
+                <h1>Official Access</h1>
+                <p>This portal is exclusively for Barangay Officials and Administrators to manage reports and oversee system operations.</p>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: LOGIN FORM -->
+        <div class="login-section">
+            <div class="login-card">
+                <h2>Official Sign In</h2>
+                
+                <form id="loginForm">
+                    
+                    <!-- Input field for Email/Identifier -->
+                    <div class="form-group icon-input">
+                        <i class="fas fa-user-shield"></i> <!-- Admin Icon -->
+                        <input type="email" id="email" placeholder="Official Email" required>
+                    </div>
+
+                    <!-- Input field for Password -->
+                    <div class="form-group password-wrapper icon-input">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="Password" required>
+                        <span class="password-toggle-icon" onclick="togglePasswordVisibility('password')">
+                            <i class="far fa-eye"></i>
+                        </span>
+                    </div>
+
+                    <button type="submit" class="sign-in-btn">Log In</button>
+                </form>
+
+              
+            </div>
+        </div>
+    </div>
+
+<script>
+    // 🔑 Toggle password visibility function
+    function togglePasswordVisibility(id) {
+        const input = document.getElementById(id);
+        const icon = input.parentElement.querySelector('.password-toggle-icon i');
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    // Submit form and send data to admin backend endpoint
+    document.getElementById("loginForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const email = document.getElementById("email").value.trim(); 
+        const password = document.getElementById("password").value;
+
+        if (!email || !password) {
+            alert("⚠️ Please enter both email and password.");
+            return;
+        }
+
+        // ⭐ FRONTEND SECURITY/UX CHECK: Enforce the specific admin email
+        const REQUIRED_ADMIN_EMAIL = "admintest@gmail.com";
+        
+        if (email !== REQUIRED_ADMIN_EMAIL) {
+            alert("🚫 Access denied. This email is not authorized for the Official/Admin Login.");
+            document.getElementById("email").value = ""; 
+            document.getElementById("password").value = "";
+            return;
+        }
+        // ⭐ END FRONTEND CHECK
+
+        const adminCredentials = {
+            email: email, 
+            password: password,
+            role: "Official" 
+        };
+        
+        // IMPORTANT: Targeting the ADMIN specific login endpoint
+        try {
+            const response = await fetch("http://localhost:8081/admin/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(adminCredentials),
+            });
+
+            const result = await response.json();
+            
+            // Use a custom message box instead of alert if implementing a proper UI
+            alert(result.message || (response.ok ? "Admin Login successful!" : "Login failed. Check Official credentials."));
+
+            if (response.ok && result.user) {
+                // Store user data and redirect to admin dashboard (using relative path from snippet)
+                localStorage.setItem("user", JSON.stringify(result.user));
+                window.location.href = "../admin/dashboard.html"; 
+            } else {
+                alert(result.message || "❌ Invalid email or password or unauthorized access.");
+                localStorage.removeItem("user");
+            }
+
+
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("❌ Failed to connect to the server.");
+        }
+    });
+</script>
+
+</body>
+</html>
