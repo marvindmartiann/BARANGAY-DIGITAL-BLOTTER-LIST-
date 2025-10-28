@@ -1,87 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Login</title>
-  <link rel="stylesheet" href="adminlogin.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Official Admin Login | BDBS</title>
+    <!-- Uses the common login.css for consistent look and feel -->
+    <link rel="stylesheet" href="adminlogin.css"> 
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-  <div class="login-container">
-    <h2>Official/Admin Login</h2>
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="Enter your email" required>
-      </div>
 
-      <div class="form-group password-wrapper">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Enter your password" required>
-        <span class="toggle-password" onclick="togglePassword('password')" title="Show / Hide password">👁</span>
-      </div>
+    <div class="split-container">
+        <!-- LEFT SIDE: WELCOME SECTION (Admin Content) -->
+        <div class="welcome-section">
+            <div class="welcome-content">
+                <!-- Logo remains centered and large, using the same class -->
+                <img src="logo 1.png" alt="BDBS Logo" class="welcome-logo">
+                
+                <!-- Admin-specific Welcome Text -->
+                <h1>Official Access</h1>
+                <p>This portal is exclusively for Barangay Officials and Administrators to manage reports and oversee system operations.</p>
+            </div>
+        </div>
 
-      <button type="submit">Login</button>
-    </form>
-  </div>
+        <!-- RIGHT SIDE: LOGIN FORM -->
+        <div class="login-section">
+            <div class="login-card">
+                <h2>Official Sign In</h2>
+                
+                <form id="loginForm">
+                    
+                    <!-- Input field for Email/Identifier -->
+                    <div class="form-group icon-input">
+                        <i class="fas fa-user-shield"></i> <!-- Admin Icon -->
+                        <input type="email" id="email" placeholder="Official Email" required>
+                    </div>
+
+                    <!-- Input field for Password -->
+                    <div class="form-group password-wrapper icon-input">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="Password" required>
+                        <span class="password-toggle-icon" onclick="togglePasswordVisibility('password')">
+                            <i class="far fa-eye"></i>
+                        </span>
+                    </div>
+
+                    <button type="submit" class="sign-in-btn">Log In</button>
+                </form>
+
+              
+            </div>
+        </div>
+    </div>
 
 <script>
-  // 👁 Toggle password visibility
-  function togglePassword(id) {
-    const input = document.getElementById(id);
-    input.type = (input.type === "password") ? "text" : "password";
-  }
+    // 🔑 Toggle password visibility function
+    function togglePasswordVisibility(id) {
+        const input = document.getElementById(id);
+        const icon = input.parentElement.querySelector('.password-toggle-icon i');
 
-  document.getElementById("loginForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    if (!email || !password) {
-      alert("⚠️ Please enter both email and password.");
-      return;
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
     }
 
-    // ⭐ FRONTEND SECURITY/UX CHECK: Enforce the specific admin email
-    const REQUIRED_ADMIN_EMAIL = "admintest@gmail.com";
-    
-    if (email !== REQUIRED_ADMIN_EMAIL) {
-      alert("🚫 Access denied. This email is not authorized for the Official/Admin Login.");
-      document.getElementById("email").value = ""; 
-      document.getElementById("password").value = "";
-      return;
-    }
-    // ⭐ END FRONTEND CHECK
+    // Submit form and send data to admin backend endpoint
+    document.getElementById("loginForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
 
-    try {
-      // ⭐ CRITICAL: Use the secure, dedicated admin endpoint
-      const response = await fetch("http://localhost:8081/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
+        const email = document.getElementById("email").value.trim(); 
+        const password = document.getElementById("password").value;
 
-      const result = await response.json();
+        if (!email || !password) {
+            alert("⚠️ Please enter both email and password.");
+            return;
+        }
 
-      if (response.ok && result.user) {
-        // The backend /admin/login ensures user_type is 'Official', 
-        // so we just check for a successful response.
-        alert("✅ Admin Login successful!");
-        localStorage.setItem("user", JSON.stringify(result.user));
-        // ✅ Direct path to dashboard.html inside the admin folder
-        window.location.href = "../admin/dashboard.html";
-      } else {
-        // This handles invalid credentials OR the backend's 403 Forbidden response
-        alert(result.message || "❌ Invalid email or password or unauthorized access.");
-        localStorage.removeItem("user");
-      }
+        // REMOVED: Frontend email check is not secure. Trust server for validation.
+        /*         const REQUIRED_ADMIN_EMAIL = "admintest@gmail.com";
+        if (email !== REQUIRED_ADMIN_EMAIL) {
+            alert("🚫 Access denied. This email is not authorized for the Official/Admin Login.");
+            document.getElementById("email").value = ""; 
+            document.getElementById("password").value = "";
+            return;
+        }
+        */
 
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("❌ Failed to connect to the server.");
-    }
-  });
+        const adminCredentials = {
+            email: email, 
+            password: password,
+            // Removed: 'role' field is not needed if the server checks user_type
+        };
+        
+        // IMPORTANT: Targeting the ADMIN specific login endpoint
+        try {
+            const response = await fetch("http://localhost:8081/admin/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(adminCredentials),
+            });
+
+            const result = await response.json();
+            
+            if (response.ok && result.user) {
+                const userType = result.user.user_type?.toLowerCase();
+
+                if (userType === 'official') {
+                    alert("✅ Admin Login successful!");
+                    
+                    // 1. CLEAR RESIDENT KEY: Remove the resident key
+                    localStorage.removeItem("residentUser");
+                    // 2. USE UNIQUE ADMIN KEY: Save data under 'adminUser'
+                    localStorage.setItem("adminUser", JSON.stringify(result.user));
+                    // 3. CLEAR OLD KEY: Ensure no generic 'user' key is left
+                    localStorage.removeItem("user"); 
+
+                    window.location.href = "../admin/dashboard.html"; 
+                } else {
+                    // This handles if a Resident somehow used the Admin login page
+                    alert("Access denied: You are not authorized for the Admin portal.");
+                    localStorage.removeItem("adminUser");
+                    localStorage.removeItem("user");
+                }
+            } else {
+                // Failure case: Invalid creds or non-official user rejected by server
+                alert(result.message || "❌ Invalid email or password or unauthorized access.");
+                localStorage.removeItem("adminUser");
+                localStorage.removeItem("user");
+            }
+
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("❌ Failed to connect to the server.");
+        }
+    });
 </script>
 
 </body>

@@ -79,7 +79,7 @@
    /*
     ✅ CORRECTION: Centralized Access Control and ID retrieval
     */
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = JSON.parse(localStorage.getItem("residentUser"));
     
     // Check if user is NOT logged in OR user is NOT a Resident
     if (!user || user.user_type?.toLowerCase() !== "resident") {
@@ -100,82 +100,87 @@
     
     // 🔑 Dito na natin kukunin ang ID, gamit ang TAMA na 'user' object
     const currentUserId = user.id;
-    // Load Complaints
-    async function loadComplaints() {
-      const tbody = document.querySelector("#complaintsTable tbody");
-      try {
-        const res = await fetch(`http://localhost:8081/api/complaints/user/${currentUserId}`);
-        const data = await res.json();
+   // Load Complaints
+async function loadComplaints() {
+  const tbody = document.querySelector("#complaintsTable tbody");
+  try {
+    const res = await fetch(`http://localhost:8081/api/complaints/user/${currentUserId}`);
+    let data = await res.json();
 
-        if (!data.length) {
-          tbody.innerHTML = `<tr><td colspan="7" class="no-data">No complaints found.</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = data.map(c => `
-          <tr>
-            <td>${c.id}</td>
-            <td>${c.date}</td>
-            <td>${c.time}</td>
-            <td>${c.personToReport}</td>
-            <td>${c.details}</td>
-            <td>${c.incident_type || '—'}</td>
-            <td>${c.status || 'Pending'}</td>
-          </tr>
-        `).join("");
-
-        // Add search filter
-        document.getElementById("complaintSearch").addEventListener("keyup", function() {
-          const filter = this.value.toLowerCase();
-          const rows = tbody.querySelectorAll("tr");
-          rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(filter) ? "" : "none";
-          });
-        });
-
-      } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="7" class="no-data">Error loading complaints.</td></tr>`;
-      }
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="7" class="no-data">No complaints found.</td></tr>`;
+      return;
     }
 
-    // Load Appointments
-    async function loadAppointments() {
-      const tbody = document.querySelector("#appointmentsTable tbody");
-      try {
-        const res = await fetch(`http://localhost:8081/api/appointments/user/${currentUserId}`);
-        const data = await res.json();
+    // ⭐ KEY CHANGE: Reverse the array to show newest (highest ID/last submitted) first
+    data = data.reverse(); 
 
-        if (!data.length) {
-          tbody.innerHTML = `<tr><td colspan="5" class="no-data">No appointments found.</td></tr>`;
-          return;
-        }
+    tbody.innerHTML = data.map(c => `
+      <tr>
+        <td>${c.id}</td>
+        <td>${c.date}</td>
+        <td>${c.time}</td>
+        <td>${c.personToReport}</td>
+        <td>${c.details}</td>
+        <td>${c.incident_type || '—'}</td>
+        <td>${c.status || 'Pending'}</td>
+      </tr>
+    `).join("");
 
-        tbody.innerHTML = data.map(a => `
-          <tr>
-            <td>${a.id}</td>
-            <td>${a.reason}</td>
-            <td>${a.date}</td>
-            <td>${a.time}</td>
-            <td>${a.status || 'Pending'}</td>
-          </tr>
-        `).join("");
+    // Add search filter (Keep existing logic)
+    document.getElementById("complaintSearch").addEventListener("keyup", function() {
+      const filter = this.value.toLowerCase();
+      const rows = tbody.querySelectorAll("tr");
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(filter) ? "" : "none";
+      });
+    });
 
-        // Add search filter
-        document.getElementById("appointmentSearch").addEventListener("keyup", function() {
-          const filter = this.value.toLowerCase();
-          const rows = tbody.querySelectorAll("tr");
-          rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(filter) ? "" : "none";
-          });
-        });
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="7" class="no-data">Error loading complaints.</td></tr>`;
+  }
+}
 
-      } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="5" class="no-data">Error loading appointments.</td></tr>`;
-      }
+// Load Appointments
+async function loadAppointments() {
+  const tbody = document.querySelector("#appointmentsTable tbody");
+  try {
+    const res = await fetch(`http://localhost:8081/api/appointments/user/${currentUserId}`);
+    let data = await res.json();
+
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="no-data">No appointments found.</td></tr>`;
+      return;
     }
 
+    // ⭐ KEY CHANGE: Reverse the array to show newest (highest ID/last submitted) first
+    data = data.reverse();
+
+    tbody.innerHTML = data.map(a => `
+      <tr>
+        <td>${a.id}</td>
+        <td>${a.reason}</td>
+        <td>${a.date}</td>
+        <td>${a.time}</td>
+        <td>${a.status || 'Pending'}</td>
+      </tr>
+    `).join("");
+
+    // Add search filter (Keep existing logic)
+    document.getElementById("appointmentSearch").addEventListener("keyup", function() {
+      const filter = this.value.toLowerCase();
+      const rows = tbody.querySelectorAll("tr");
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(filter) ? "" : "none";
+      });
+    });
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" class="no-data">Error loading appointments.</td></tr>`;
+  }
+}
     // Load both on page load
     loadComplaints();
     loadAppointments();

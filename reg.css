@@ -1,112 +1,163 @@
+/* GLOBAL RESET & BASE STYLES */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
 body {
-      font-family: Arial, sans-serif;
-      background: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
 
-    .register-box {
-      border: 1px solid #007B8E;
-      padding: 40px;
-      border-radius: 5px;
-      width: 400px;
-      background: #fff;
-      box-sizing: border-box;
-      text-align: center;
-    }
+/* --- CARD CONTAINER --- */
+.register-container {
+    padding: 20px;
+    width: 100%;
+    max-width: 450px; /* Max width for the card */
+}
 
-    .register-box h2 {
-      margin: 0 0 10px;
-      font-size: 28px;
-    }
+.register-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    padding: 35px 30px;
+    transition: transform 0.3s ease;
+}
 
-    .register-box p {
-      margin: 0 0 20px;
-      font-size: 14px;
-      color: #333;
-    }
+/* --- HEADER STYLES --- */
+.header-box {
+    margin-bottom: 25px;
+    text-align: center;
+}
 
-    .toggle-buttons {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
+.register-card h2 {
+    font-size: 1.8em;
+    color: #007B8E;
+    margin-bottom: 5px;
+}
 
-    .toggle-buttons button {
-      flex: 1;
-      padding: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      border: 1px solid #007B8E;
-      background: #fff;
-      transition: 0.3s;
-    }
+.register-card p {
+    font-size: 0.95em;
+    color: #666;
+}
 
-    .toggle-buttons button.active {
-      background: #007B8E;
-      color: white;
-      font-weight: bold;
-    }
+/* --- ROLE TOGGLE (Simplified) --- */
+.toggle-buttons-wrapper {
+    margin-bottom: 25px;
+    text-align: center;
+}
 
-    .register-box input {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #007B8E;
-      border-radius: 5px;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
+.toggle-buttons button {
+    padding: 10px 25px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    color: #666;
+    cursor: default; /* Make it look fixed for Resident */
+    font-weight: 600;
+}
 
-    .password-wrapper {
-      position: relative;
-      width: 100%;
-    }
+.toggle-buttons button.active {
+    background-color: #007B8E; /* Deep purple */
+    color: white;
+    border-color: #007B8E;
+}
 
-    .password-wrapper input {
-      width: 100%;
-      padding-right: 40px;
-    }
+/* --- FORM STYLING --- */
+#registerForm {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
 
-    .password-wrapper .toggle-password {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      font-size: 16px;
-      color: #555;
-    }
+#registerForm input[type="text"],
+#registerForm input[type="email"],
+#registerForm input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
 
-    .register-btn {
-      width: 100%;
-      padding: 12px;
-      margin-top: 20px;
-      font-size: 18px;
-      font-weight: bold;
-      border: none;
-      border-radius: 5px;
-      background: #007B8E;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
+#registerForm input:focus {
+    border-color: #007B8E;
+    outline: none;
+}
 
-    .register-btn:hover {
-      background: #007B8E;
-    }
+/* --- PASSWORD WRAPPER & TOGGLE --- */
+.password-wrapper {
+    position: relative;
+}
 
-    .login-link {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #333;
-    }
+.password-toggle-icon {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #999;
+    font-size: 1em;
+    transition: color 0.3s;
+}
 
-    .login-link a {
-      color: #007B8E;
-      text-decoration: none;
-      font-weight: bold;
+/* Adjust padding for password input to prevent overlap with the eye icon */
+.password-wrapper input {
+    padding-right: 40px !important; 
+}
+
+.password-toggle-icon:hover {
+    color: #007B8E;
+}
+
+/* --- BUTTONS --- */
+.action-btn {
+    background-image: linear-gradient(45deg, #007B8E, #005f6b);
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.05em;
+    font-weight: bold;
+    margin-top: 10px;
+    transition: opacity 0.3s, box-shadow 0.3s;
+    box-shadow: 0 5px 15px rgba(106, 27, 154, 0.4);
+}
+
+.action-btn:hover {
+    opacity: 0.9;
+    box-shadow: 0 5px 20px rgba(106, 27, 154, 0.5);
+}
+
+/* --- LOGIN LINK --- */
+.login-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.login-link a {
+    color: #007B8E;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+/* --- RESPONSIVENESS --- */
+@media (max-width: 600px) {
+    .register-card {
+        padding: 30px 20px;
+        margin: 20px;
     }
+}

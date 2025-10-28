@@ -46,72 +46,85 @@
   </div>
 
 <script>
-  // 🔑 Updated Toggle Password Function using Font Awesome
-  function togglePasswordVisibility(id) {
-    const input = document.getElementById(id);
-    const icon = input.parentElement.querySelector('.password-toggle-icon i');
+  // 🔑 Updated Toggle Password Function using Font Awesome
+  function togglePasswordVisibility(id) {
+    const input = document.getElementById(id);
+    const icon = input.parentElement.querySelector('.password-toggle-icon i');
 
-    if (input.type === "password") {
-        input.type = "text";
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        input.type = "password";
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    }
-  }
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+  }
 
-  document.getElementById("loginForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
+  document.getElementById("loginForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-    if (!email || !password) {
-      alert("⚠️ Please enter both email and password.");
-      return;
-    }
+    if (!email || !password) {
+      alert("⚠️ Please enter both email and password.");
+      return;
+    }
 
-    try {
-      // Use the generic /login endpoint
-      const response = await fetch("http://localhost:8081/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
+    try {
+      // Use the generic /login endpoint
+      const response = await fetch("http://localhost:8081/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
 
-      const result = await response.json();
+      const result = await response.json();
 
-      if (response.ok && result.user) {
-          const userType = result.user.user_type?.toLowerCase();
+      if (response.ok && result.user) {
+          const userType = result.user.user_type?.toLowerCase();
 
-          if (userType === "resident") {
-            // ✅ Success: Resident -> User Landing Page
-            alert("✅ Login successful!");
-            localStorage.setItem("user", JSON.stringify(result.user));
-            window.location.href = "landingpgusr.html";
-          } else if (userType === "official") {
-            // 🛑 Reject OFFICIALS and redirect to their specific login page.
+            // 1. CLEAR other keys to prevent session overlap
+            localStorage.removeItem("adminUser"); 
+            localStorage.removeItem("user"); // Clear the old generic key
+
+          if (userType === "resident") {
+            // ✅ Success: Resident -> User Landing Page
+            alert("✅ Login successful!");
+            // 2. USE UNIQUE KEY: Save data under 'residentUser'
+            localStorage.setItem("residentUser", JSON.stringify(result.user));
+            window.location.href = "landingpgusr.html";
+          } else if (userType === "official") {
+            // 🛑 Reject OFFICIALS and redirect (though server should handle the 403)
+            localStorage.removeItem("residentUser");
+            alert("Access denied: You are an Official. Please use the designated Admin Login page.");
+            window.location.href = "adminlogin.html"; 
+          } else {
+            // Fallback for any unknown user type
+            localStorage.removeItem("residentUser");
+            alert("Access denied: Invalid user type.");
+          }
+          return;
+
+      } else {
+            // Handle server rejection (especially for Officials blocked by server.js)
+            if (response.status === 403 || result.user_type === 'Official') {
+                alert(result.message || "Access denied: You are an Official. Please use the designated Admin Login page.");
+                window.location.href = "adminlogin.html";
+            } else {
+                alert(result.message || "❌ Invalid email or password.");
+            }
+            // Ensure old 'user' key is cleared on failure/rejection
             localStorage.removeItem("user");
-            alert("Access denied: You are an Official. Please use the designated Admin Login page.");
-            window.location.href = "adminlogin.html"; 
-          } else {
-            // Fallback for any unknown user type
-            localStorage.removeItem("user");
-            alert("Access denied: Invalid user type.");
-          }
-          return;
+      }
 
-      } else {
-        alert(result.message || "❌ Invalid email or password.");
-      }
-
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("❌ Failed to connect to the server.");
-    }
-  });
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("❌ Failed to connect to the server.");
+    }
+  });
 </script>
 
 </body>

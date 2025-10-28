@@ -114,7 +114,7 @@
   </div>
 
   <script>
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = JSON.parse(localStorage.getItem("residentUser"));
     const currentUserId = user ? user.id : null;
 
     // Helper function to format the full name into first and last
@@ -208,7 +208,7 @@
 
         if (res.ok) {
           const updatedLocalUser = { ...user, ...updatedFields };
-          localStorage.setItem("user", JSON.stringify(updatedLocalUser));
+          localStorage.setItem("residentUser", JSON.stringify(updatedLocalUser));
           
           alert("✅ Profile updated successfully!");
           loadProfileData(); 

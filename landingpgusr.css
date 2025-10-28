@@ -17,7 +17,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 45%;
+  margin-left: 47%;
 }
 
 .logo img {
@@ -129,7 +129,7 @@ header {
 .services {
   display: flex;
   justify-content: center;
-  gap: 120px;
+  gap: 80px;
   margin-top: 40px;
 }
 
@@ -138,7 +138,7 @@ header {
   border: 3px solid #007B8E;
   border-radius: 12px;
   padding: 40px;
-  width: 250px;
+  width: 300px;
   text-align: center;
   font-weight: bold;
   text-decoration: none;

@@ -9,15 +9,17 @@
 <body>
 
   <div class="sidebar">
-  <h2>ADMIN PANEL</h2>
-  <a href="#" id="btnDashboard" class="active">Dashboard</a>
-  <a href="#" id="btnComplaints">Complaints</a>
-  <a href="#" id="btnAppointments">Appointments</a>
-  <a href="#" id="btnUsers">Users</a>
-  <a href="#" id="btnArchived">Archived</a>
-  <a href="#" id="btnAccount">Account</a>
-  <a href="#" id="btnLogout">Logout</a>
-</div>
+    <div class="sidebar-logo">
+      <img src="logo 1.png" alt="BDBS Logo">
+    </div>
+    <a href="#" id="btnDashboard" class="active">Dashboard</a>
+    <a href="#" id="btnComplaints">Complaints</a>
+    <a href="#" id="btnAppointments">Appointments</a>
+    <a href="#" id="btnUsers">Users</a>
+    <a href="#" id="btnArchived">Archived</a>
+    <a href="#" id="btnAccount">Account</a>
+    <a href="#" id="btnLogout">Logout</a>
+  </div>
 
   <div class="main-content">
     <div id="content"></div>
@@ -27,14 +29,14 @@
 
   <script>
     // CRITICAL: Session Check on Page Load/Refresh
-    const user = localStorage.getItem('user');
+    const user = localStorage.getItem('adminUser');
 
     if (!user) {
         // If 'user' data is missing, the user is NOT logged in.
         alert("🔒 Session expired or unauthorized access. Please log in.");
         
         // Redirect to the Admin Login page
-        window.location.href = "../adminlogin.html"; 
+        window.location.href = "../admin/adminlogin.html"; 
         
         // STOP further script execution
         throw new Error("Unauthorized access"); 
@@ -43,14 +45,6 @@
     // Optional: Parse the user data for use later in the dashboard
     const userData = JSON.parse(user);
     console.log("Welcome, Admin:", userData.name);
-
-    // Add logic here to verify the user_type is 'Official' if you want extra security.
-    if (userData.user_type.toLowerCase() !== 'official') {
-        alert("🚫 Access denied: User is not an Official.");
-        localStorage.removeItem('user'); // Clear incorrect session data
-        window.location.href = "../adminlogin.html"; 
-        throw new Error("Invalid user type access"); 
-    }
 
     /* ---------------------------------------------------- */
     /* ========== GLOBAL ELEMENTS (Starts Here) ========== */
@@ -77,9 +71,21 @@
           case "btnUsers": showUsers(); break;
           case "btnArchived": showArchived(); break;
           case "btnAccount": showAccount(); break; // Added handler
+          case "btnLogout": adminLogout(); break; // CRITICAL: Idagdag ito!
         }
       });
     });
+
+    // --- CRITICAL: adminLogout Function (Global Scope) ---
+function adminLogout() {
+    if (confirm("Are you sure you want to logout?")) {
+        // Alisin lang ang admin-related keys
+        localStorage.removeItem("adminUser"); 
+        
+        alert("You have been logged out.");
+        window.location.href = "../admin/adminlogin.html"; 
+    }
+}
 
     /* 🌏 FORMAT DATE TO PH TIME */
   function formatDateToPH(dateStr) {
@@ -418,15 +424,18 @@ window.filterTable = function() {
 
 // Wrapper function to call the status update and then refresh the view
 async function updateStatusAndRefresh(type, id, newStatus) {
-    // Assuming updateStatus handles the API call and status change
+    // 1. Send API update
     await updateStatus(type, id, newStatus); 
     
-    // Clear the cached data to force a fresh fetch
-    allComplaints = []; 
-    
-    // Re-render the entire complaints section to update the tables and counts
-    await showComplaints(); 
-}
+    // 2. TANGGALIN LANG ANG CACHED ARRAYS NG ADMIN:
+    if (type === 'complaint') {
+        allComplaints = []; 
+        // ...
+    } else if (type === 'appointment') {
+        allAppointments = []; 
+        // ...
+    }
+  }
 
 
     /* ========== 3️⃣ APPOINTMENTS SECTION ========== */
@@ -633,29 +642,65 @@ window.filterTableAppointments = function() {
     `;
 };
 
-// Placeholder for updateStatus and updateStatusAndRefresh functions (copied from complaints logic)
+/* 🔑 CRITICAL: CORE ADMIN ACTIONS (CORRECTED) */
+
+/**
+ * CRITICAL: API function to update record status (Sends request to server)
+ * This function is SAFE and DOES NOT manipulate localStorage('user').
+ */
 async function updateStatus(type, id, newStatus) {
-    console.log(`[ACTION] ${type} ID ${id} status updated to: ${newStatus}`);
-    // Mock the update in the local array for immediate feedback
-    // NOTE: This assumes 'allComplaints' is available globally if this function is used for complaints
-    // For appointments, it uses the global allAppointments array.
-    const dataArray = (typeof allComplaints !== 'undefined' && type === 'complaint') ? allComplaints : allAppointments;
-    const item = dataArray.find(i => i.id === id);
-    if (item) {
-        item.status = newStatus;
+    const endpoint = `http://localhost:8081/api/${type}s/${id}/status`;
+    console.log(`[API CALL] Updating ${type} ${id} to ${newStatus}`);
+
+    try {
+        const res = await fetch(endpoint, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.message || `Failed to update status for ${type} ${id}.`);
+        }
+        // WALANG LOCAL STORAGE CODE DITO.
+
+        alert(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} ID ${id} successfully set to ${newStatus}.`);
+
+    } catch (err) {
+        console.error("API Update Error:", err);
+        alert(`❌ Error updating status: ${err.message}`);
     }
 }
 
+/**
+ * CRITICAL: Wrapper function to handle status update and view refresh.
+ * (This version is safe and does not delete user sessions)
+ */
 async function updateStatusAndRefresh(type, id, newStatus) {
+    // 1. Send API update
     await updateStatus(type, id, newStatus); 
     
-    // Clear the cached data to force a fresh fetch
+    // 2. Clear cached data and re-render based on type
+    // Tanging ang cached arrays lang ng Admin ang kailangan nating galawin.
     if (type === 'complaint') {
-        // allComplaints is assumed to be global for complaints
-    } else {
+        allComplaints = []; // Clear the cached complaints data
+        
+        // Re-render only if the user is on the Complaints page
+        const complaintsButton = document.getElementById("btnComplaints");
+        if (complaintsButton && complaintsButton.classList.contains("active")) {
+            await showComplaints(); 
+        }
+    } else if (type === 'appointment') {
         allAppointments = []; // Clear appointments data
-        await showAppointments();
+        
+        // Re-render only if the user is on the Appointments page
+        const appointmentsButton = document.getElementById("btnAppointments");
+        if (appointmentsButton && appointmentsButton.classList.contains("active")) {
+            await showAppointments();
+        }
     }
+    // ✅ WALANG LOCAL STORAGE DELETION DITO.
 }
 
     /* ========== 4️⃣ PENDING SECTION ========== */
@@ -977,7 +1022,7 @@ async function showRejected() {
 
 /* ========== ACCOUNT PAGE ========== */
 function showAccount() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("adminUser"));
   if (!user) return alert("No user logged in.");
 
   content.innerHTML = `
@@ -1073,26 +1118,20 @@ function showAccount() {
         return;
       }
 
-      alert(data.message);
-      localStorage.clear();
-      window.location.href = "../login.html";
+      alert("✅ Password successfully changed! Please log in again.");
+      
+      // Optional: Clear the password fields after success
+      document.getElementById("currentPassword").value = '';
+      document.getElementById("newPassword").value = '';
+      document.getElementById("confirmPassword").value = '';
 
+      window.location.href = "../admin/adminlogin.html";
     } catch (err) {
       console.error("Fetch error:", err);
       alert("❌ Unable to connect to the server.");
     }
   });
 }
-
-// ✅ LOGOUT FUNCTION
-document.getElementById("btnLogout").addEventListener("click", (e) => {
-  e.preventDefault();
-  if (confirm("Are you sure you want to logout?")) {
-    localStorage.removeItem("user"); // remove saved login
-    window.location.href = "../admin/adminlogin.html";
-  }
-});
-
   </script>
 </body>
 </html>
