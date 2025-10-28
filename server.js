@@ -92,57 +92,72 @@ async function startServer() {
             }
         });
 
-        // ---------- GENERIC LOGIN (CORRECTED: Blocks officials) ----------
-        app.post("/login", async (req, res) => {
-            const { email, password } = req.body;
+       // server.js (Partial Code)
 
-            if (!email || !password) {
-                return res.status(400).json({ message: "Please fill all fields." });
-            }
+// ---------- GENERIC LOGIN (CORRECTED: Blocks officials and Inactive Users) ----------
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
 
-            try {
-                const sql = "SELECT * FROM users WHERE email = ?";
-                const [results] = await db.query(sql, [email]);
+    if (!email || !password) {
+        return res.status(400).json({ message: "Please fill all fields." });
+    }
 
-                if (results.length === 0) {
-                    return res.status(401).json({ message: "Invalid email or password." });
-                }
+    try {
+        const sql = "SELECT * FROM users WHERE email = ?";
+        const [results] = await db.query(sql, [email]);
 
-                const user = results[0];
-                const userType = user.user_type ? user.user_type.toLowerCase() : null;
+        if (results.length === 0) {
+            return res.status(401).json({ message: "Invalid email or password." });
+        }
 
-                // 🛑 CORRECTION: Block officials from using the resident login endpoint
-                if (userType === 'official') {
-                    console.warn(`🛑 Official login attempt blocked at /login by: ${email}`);
-                    return res.status(403).json({ 
-                        message: "Access denied: You are an Official. Please use the designated Admin Login page.",
-                        user_type: user.user_type
-                    });
-                }
+        const user = results[0];
+        const userType = user.user_type ? user.user_type.toLowerCase() : null;
 
-                const isMatch = await bcrypt.compare(password, user.password);
+        // 🔍 DEBUGGING: I-print ang status para ma-verify mo sa console
+        console.log(`User ID: ${user.id} attempting login. Status from DB: ${user.status}`);
+        
+        // 🛑 FIX: CRITICAL CHECK for INACTIVE STATUS
+        // Ginawa kong case-insensitive check (toLowerCase()) para sigurado
+        if (user.status && user.status.toLowerCase() === 'inactive') { 
+            console.warn(`🛑 Inactive user login attempt blocked for: ${email}`);
+            return res.status(403).json({ 
+                message: "Access denied: Your account is inactive. Please contact the Admin.",
+                user_type: user.user_type
+            });
+        }
+        
+        // 🛑 CORRECTION: Block officials from using the resident login endpoint
+        if (userType === 'official') {
+            console.warn(`🛑 Official login attempt blocked at /login by: ${email}`);
+            return res.status(403).json({ 
+                message: "Access denied: You are an Official. Please use the designated Admin Login page.",
+                user_type: user.user_type
+            });
+        }
 
-                if (!isMatch) {
-                    return res.status(401).json({ message: "Invalid email or password." });
-                }
+        const isMatch = await bcrypt.compare(password, user.password);
 
-                // Success: Return the resident user's data
-                res.json({
-                    message: "Login successful!",
-                    user: {
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        contact: user.contact,
-                        address: user.address,
-                        user_type: user.user_type
-                    }
-                });
-            } catch (err) {
-                console.error("Database/Bcrypt Error:", err);
-                res.status(500).json({ message: "Server error during login." });
+        if (!isMatch) {
+            return res.status(401).json({ message: "Invalid email or password." });
+        }
+
+        // Success: Return the resident user's data
+        res.json({
+            message: "Login successful!",
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                contact: user.contact,
+                address: user.address,
+                user_type: user.user_type
             }
         });
+    } catch (err) {
+        console.error("Database/Bcrypt Error:", err);
+        res.status(500).json({ message: "Server error during login." });
+    }
+});
 
         // ---------- ADMIN LOGIN (Used by Admin Login Page: adminlogin.html) ----------
         app.post("/admin/login", async (req, res) => {
