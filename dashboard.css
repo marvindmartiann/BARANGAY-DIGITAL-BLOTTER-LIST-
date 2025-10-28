@@ -1,0 +1,368 @@
+/* ===================== GLOBAL ===================== */
+/* 1. Style the main body/HTML structure */
+body {
+    margin: 0; /* Remove default body margins */
+    padding: 0;
+    font-family: Arial, sans-serif; /* Example font */
+    display: flex; /* Use flexbox to manage the sidebar and content layout */
+}
+
+h2 {
+  padding-left: 40px;
+}
+
+/* 2. Fix the Sidebar in position */
+.sidebar {
+    /* Critical properties for fixed position */
+    position: fixed; 
+    top: 0;
+    left: 0;
+    height: 100vh; /* 100% of viewport height */
+    width: 250px; /* Define the sidebar width */
+    
+    /* Aesthetics (adjust as needed) */
+    background-color: #007B8E; /* Example background color */
+    color: white;
+    padding-top: 20px;
+    overflow-y: auto; /* Allows the sidebar to scroll internally if its content is too long */
+    z-index: 1000; /* Ensure it stays above other elements */
+}
+
+/* 3. Push the main content away from the sidebar */
+.main-content {
+    /* Critical property: offset the main content by the width of the fixed sidebar */
+    margin-left: 250px; /* Must match the .sidebar width */
+
+    /* Ensure main content takes up the rest of the space */
+    flex-grow: 1; 
+
+    /* Aesthetics (adjust as needed) */
+    padding: 20px;
+    /* This content will now scroll normally */
+}
+
+/* (Existing styles for sidebar links would follow, e.g.) */
+.sidebar a {
+    display: block;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: white;
+}
+
+.sidebar a:hover {
+    /* Use the same background color as your active link */
+    background-color: #0a5b69; 
+    transform: translateX(5px);
+    transition: all 0.25s ease-in-out;
+       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); 
+}
+
+.sidebar a.active {
+    background-color: #0a5b69; /* Active link color */
+}
+
+/* --- Sidebar Logo Styling --- */
+.sidebar-logo {
+    text-align: center; /* Center the image within its div */
+    margin-bottom: 5px; /* Space below the logo */
+    padding: 5px 0; /* Add some vertical padding */
+    background-color: #007B8E; /* Optional: A slight background for the logo area */
+}
+
+.sidebar-logo img {
+    max-width: 250px; /* Adjust this value to make the logo smaller or larger */
+    height: auto; /* Maintain aspect ratio */
+    display: block; /* Remove extra space below the image */
+    margin: 0 auto; /* Center the image if max-width is less than parent */
+}
+
+/* You might need to adjust the general .sidebar padding or width if the logo is too big or small */
+/* Example adjustment if needed: */
+.sidebar {
+    width: 250px; /* Example: If you need to make the sidebar wider to fit the logo better */
+    padding-top: 0; /* Remove top padding if the logo area has its own padding */
+}
+
+/* ===================== DASHBOARD CARDS ===================== */
+.dashboard-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 150px;
+}
+
+.card {
+  width: 500px;      
+  height: 150px;     
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  text-align: center;
+  transition: 0.3s;
+  font-size: 18px;
+  color: #007B8E;
+}
+
+.card.hover:hover {
+  transform: translateY(-5px);
+  background-color: #eaf4ff; /* 💠 Hover color */
+}
+
+/* ===================== CHART ===================== */
+#incidentChart {
+  width: 100% !important;
+  max-width: 1100px;
+  height: 500px !important; /* 💠 Chart height */
+  margin: 0 auto;
+  display: block;
+}
+
+/* ===================== DROPDOWN TABLES ===================== */
+.dropdown {
+  background: white;
+  border-radius: 10px;
+  margin: 10px 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.dropdown summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-weight: bold;
+  color: #007B8E;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dropdown summary:hover {
+  background-color: #0a5b69;
+}
+
+.dropdown-content {
+  padding: 10px 16px;
+}
+
+.dropdown table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dropdown th, .dropdown td {
+  padding: 8px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+/* ===================== TABLES ===================== */
+.latest-tables {
+  display: flex;
+  gap: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background: white;
+}
+
+th, td {
+  padding: 8px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+h2 {
+  color: white;
+}
+
+h1, h3 {
+  color: #007B8E;
+}
+
+/* ========== COMPLAINTS AND APPOINMENTS =========== */
+.btn-approve {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-reject {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-approve:hover { background-color: #218838; }
+.btn-reject:hover { background-color: #c82333; }
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.controls input, .controls select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.btn {
+  background-color: #007B8E;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: #0a5b69;
+}
+
+/* 🟢 Status Badges */
+.badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  color: white;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.badge.pending { background-color: #f0ad4e; }
+.badge.approved { background-color: #5cb85c; }
+.badge.rejected { background-color: #d9534f; }
+.badge.cancelled { background-color: #6c757d; }
+
+/* ========== ACCOUNT =========== */
+.account-container {
+  background: #ffffff;
+  padding: 60px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  width: 500px;
+  margin: 100px auto; /* centers horizontally */
+  text-align: left;
+  font-size: 18px;
+}
+
+.account-container h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 28px;
+  color: #007B8E;
+}
+
+.account-container h2 {
+  text-align: center;
+  margin: 25px 0 30px;
+  font-size: 24px;
+  color: #007B8E;
+}
+
+.account-container p {
+  color: #007B8E;
+  font-size: 17px;
+  margin: 8px 0;
+}
+
+.account-container input {
+  width: 94%;
+  padding: 12px;
+  margin: 8px 0 18px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.account-container .btn {
+  display: block;
+  width: 100%;
+  background: #007B8E;
+  color: #fff;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 17px;
+  transition: 0.3s;
+}
+
+.account-container .btn:hover {
+  background: #005f6b;
+  transform: translateY(-2px);
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  width: 91%;
+  padding-right: 30px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+ .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+.pending { background-color: #ffc107; color: #333; }
+.approved { background-color: #28a745; color: white; }
+.rejected { background-color: #dc3545; color: white; }
+
+/* 💡 NEW: Flex container to hold the buttons horizontally */
+.action-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 8px; /* Adds 8px space between Approve and Reject */
+}
+
+.btn-approve { 
+    background-color: #28a745; 
+    color: white; 
+    border: none; 
+    padding: 5px 10px; 
+    cursor: pointer; 
+    border-radius: 4px; 
+}
+
+/* 💡 MODIFIED: Removed the margin-left here since 'gap' is used */
+.btn-reject { 
+    background-color: #dc3545; 
+    color: white; 
+    border: none; 
+    padding: 5px 10px; 
+    cursor: pointer; 
+    border-radius: 4px; 
+    margin-left: 0; /* Siguraduhin na walang extra margin */
+}
+
+.dropdown { margin-bottom: 20px; }
+.dropdown summary { cursor: pointer; background-color: #007B8E; color: white; padding: 10px; border-radius: 4px; }
+.dropdown-content { border: 1px solid #ccc; padding: 10px; margin-top: 5px; }
+
+
+
+
+
+
+
+

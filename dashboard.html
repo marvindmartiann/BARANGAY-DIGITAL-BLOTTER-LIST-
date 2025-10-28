@@ -718,30 +718,37 @@ async function showPending() {
 
     <h3>Pending Complaints</h3>
     <div class="controls">
-      <input type="text" id="searchPendingComplaints" placeholder="Search by name..." onkeyup="filterPendingComplaints()" />
-      <select id="filterPendingIncident" onchange="filterPendingComplaints()">
-        <option value="">All Incidents</option>
-        ${[...new Set(complaints.map(c => c.incident_type))].map(t => `<option value="${t}">${t}</option>`).join('')}
-      </select>
-      <button class="btn" onclick="showPending()">Refresh</button>
+        <input type="text" id="searchPendingComplaints" placeholder="Search by name..." onkeyup="filterPendingComplaints()" />
+        <select id="filterPendingIncident" onchange="filterPendingComplaints()">
+            <option value="">All Incidents</option>
+            ${[...new Set(complaints.map(c => c.incident_type))].map(t => `<option value="${t}">${t}</option>`).join('')}
+        </select>
+        <button class="btn" onclick="showPending()">Refresh</button>
     </div>
     <table id="pendingComplaintsTable">
-      <thead>
-        <tr>
-          <th>ID</th><th>User</th><th>Person Reported</th><th>Incident</th>
-          <th>Details</th><th>Date</th><th>Time</th><th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${complaints.map(c => `
-          <tr>
-            <td>${c.id}</td><td>${c.user_name}</td><td>${c.personToReport || '—'}</td>
-            <td>${c.incident_type || '—'}</td><td>${c.details || '—'}</td>
-            <td>${formatDateToPH(c.date)}</td><td>${c.time || '—'}</td>
-            <td><span class="badge pending">Pending</span></td>
-          </tr>
-        `).join('')}
-      </tbody>
+        <thead>
+            <tr>
+                <th>ID</th><th>User</th><th>Person Reported</th><th>Incident</th>
+                <th>Details</th><th>Date</th><th>Time</th><th>Status</th>
+                <th>Action</th> </tr>
+        </thead>
+        <tbody>
+            ${complaints.map(c => `
+                <tr>
+                    <td>${c.id}</td><td>${c.user_name}</td><td>${c.personToReport || '—'}</td>
+                    <td>${c.incident_type || '—'}</td><td>${c.details || '—'}</td>
+                    <td>${formatDateToPH(c.date)}</td><td>${c.time || '—'}</td>
+                    <td><span class="badge pending">Pending</span></td>
+                    
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-approve" onclick="updateStatus('complaint', ${c.id}, 'Approved')">Approve</button>
+                            <button class="btn-reject" onclick="updateStatus('complaint', ${c.id}, 'Rejected')">Reject</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('')}
+        </tbody>
     </table>
 
     <h3>Pending Appointments</h3>
