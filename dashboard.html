@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | Barangay Blotter System</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <img src="logo 1.png" alt="BDBS Logo">
+    </div>
+    <a href="#" id="btnDashboard" class="active">Dashboard</a>
+    <a href="#" id="btnComplaints">Complaints</a>
+    <a href="#" id="btnAppointments">Appointments</a>
+    <a href="#" id="btnUsers">Users</a>
+    <a href="#" id="btnArchived">Archived</a>
+    <a href="#" id="btnAccount">Account</a>
+    <a href="#" id="btnLogout">Logout</a>
+  </div>
+
+  <div class="main-content">
+    <div id="content"></div>
+  </div>
+
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    // CRITICAL: Session Check on Page Load/Refresh
+    const user = localStorage.getItem('adminUser');
+
+    if (!user) {
+        // If 'user' data is missing, the user is NOT logged in.
+        alert("🔒 Session expired or unauthorized access. Please log in.");
+        
+        // Redirect to the Admin Login page
+        window.location.href = "../admin/adminlogin.html"; 
+        
+        // STOP further script execution
+        throw new Error("Unauthorized access"); 
+    }
+
+    // Optional: Parse the user data for use later in the dashboard
+    const userData = JSON.parse(user);
+    console.log("Welcome, Admin:", userData.name);
+
+    /* ---------------------------------------------------- */
+    /* ========== GLOBAL ELEMENTS (Starts Here) ========== */
+    /* ---------------------------------------------------- */
+    
+    // Kung nakalagpas siya sa check, safe na gamitin ang 'user' at ang ibang elements
+    const content = document.getElementById("content");
+    const buttons = document.querySelectorAll(".sidebar a");
+
+    // ✅ Sidebar Active State Switching
+    buttons.forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault(); // Prevent default link behavior
+        buttons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        switch (btn.id) {
+          case "btnDashboard": showDashboard(); break;
+          case "btnComplaints": showComplaints(); break;
+          case "btnAppointments": showAppointments(); break;
+          case "btnPending": showPending(); break;
+          case "btnApproved": showApproved(); break;
+          case "btnRejected": showRejected(); break;
+          case "btnUsers": showUsers(); break;
+          case "btnArchived": showArchived(); break;
+          case "btnAccount": showAccount(); break; // Added handler
+          case "btnLogout": adminLogout(); break; // CRITICAL: Idagdag ito!
+        }
+      });
+    });
+
+    // --- CRITICAL: adminLogout Function (Global Scope) ---
+function adminLogout() {
+    if (confirm("Are you sure you want to logout?")) {
+        // Alisin lang ang admin-related keys
+        localStorage.removeItem("adminUser"); 
+        
+        alert("You have been logged out.");
+        window.location.href = "../admin/adminlogin.html"; 
+    }
+}
+
+    /* 🌏 FORMAT DATE TO PH TIME */
+  function formatDateToPH(dateStr) {
+    if (!dateStr) return "—";
+
+    // Use toLocaleDateString with explicit timezone
+    const date = new Date(dateStr);
+    // This is safer as it uses the existing date/time columns without guessing timezone offset
+    return date.toLocaleDateString("en-CA");
+  }
+
+    /* ========== 1️⃣ DASHBOARD SECTION ========== */
+async function showDashboard() {
+  try {
+    // Fetch all complaints/appointments to get correct counts and lists
+    const [complaintsRes, appointmentsRes] = await Promise.all([
+      fetch("http://localhost:8081/api/complaints"),
+      fetch("http://localhost:8081/api/appointments")
+    ]);
+    const complaints = await complaintsRes.json();
+    const appointments = await appointmentsRes.json();
+
+    // Sort by a creation timestamp for "Latest" (assuming created_at exists)
+    const sortedComplaints = [...complaints].sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+    const sortedAppointments = [...appointments].sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+
+    content.innerHTML = `
+      <h1>Dashboard Overview</h1>
+
+      <div class="dashboard-cards">
+        <div class="card hover" id="cardComplaints">
+          <h1>${complaints.length}</h1>
+          <p>Total Complaints</p>
+        </div>
+        <div class="card hover" id="cardAppointments">
+          <h1>${appointments.length}</h1>
+          <p>Total Appointments</p>
+        </div>
+      </div>
+
+      <h1>Incident Type Distribution</h1>
+      <canvas id="incidentChart"></canvas>
+
+      <h1>Latest Submissions</h1>
+
+      <details class="dropdown" open>
+        <summary>Latest Complaints ▼</summary>
+        <div class="dropdown-content">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Person Reported</th>
+                <th>Incident Type</th>
+                <th>Details</th>
+                <th>Date</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sortedComplaints.slice(0, 5).map(c => `
+                <tr>
+                  <td>${c.id}</td>
+                  <td>${c.user_name || '—'}</td>
+                  <td>${c.personToReport || '—'}</td>
+                  <td>${c.incident_type || '—'}</td>
+                  <td>${c.details || '—'}</td>
+                  <td>${formatDateToPH(c.date)}</td>
+                  <td>${c.time || '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <details class="dropdown" open>
+        <summary>Latest Appointments ▼</summary>
+        <div class="dropdown-content">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Reason</th>
+                <th>Date</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sortedAppointments.slice(0, 5).map(a => `
+                <tr>
+                  <td>${a.id}</td>
+                  <td>${a.user_name || '—'}</td>
+                  <td>${a.reason || '—'}</td>
+                  <td>${formatDateToPH(a.date)}</td>
+                  <td>${a.time || '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    `;
+    
+    // ✅ Chart Data Prep
+    const incidentCount = {};
+    complaints.forEach(c => {
+      const type = c.incident_type || 'Unknown';
+      incidentCount[type] = (incidentCount[type] || 0) + 1;
+    });
+
+    // 🔹 CHART.JS CONFIG
+    const ctx = document.getElementById("incidentChart").getContext("2d");
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: Object.keys(incidentCount),
+        datasets: [{
+          label: "Number of Complaints",
+          data: Object.values(incidentCount),
+          backgroundColor: "#007B8E",
+          borderColor: "#0a5b69",
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        scales: {
+          x: { beginAtZero: true, ticks: { color: "#333" } },
+          y: { ticks: { color: "#333" } }
+        },
+        plugins: {
+          legend: { labels: { color: "#333" } },
+          title: {
+            display: true,
+            text: "Incident Type Distribution",
+            color: "#007B8E",
+            font: { size: 18, weight: "bold" }
+          }
+        }
+      }
+    });
+  } catch (err) {
+    console.error("Error loading dashboard data:", err);
+    content.innerHTML = "<h1>Dashboard Overview</h1><p>Error loading data. Check server console.</p>";
+  }
+}
+
+    /* ========== 2️⃣ COMPLAINTS SECTION ========== */
+// Global variable to hold all complaints data once fetched (prevents redundant API calls)
+let allComplaints = [];
+
+// Track the currently active status filter for the search/incident controls, but we display all tables now.
+// We reset this to 'All' when reloading to ensure global filters are visible.
+let activeComplaintFilter = 'All'; 
+
+// Define the maximum number of entries to display per table
+const MAX_ENTRY_PER_TABLE = 7;
+
+/*
+ * Generates the HTML for a single complaints table, filtered by status.
+ * @param {string} status - The status to filter by (e.g., 'Pending', 'Approved', 'Rejected').
+ * @param {array} data - The array of complaint objects to process.
+ * @param {boolean} showActions - If true, displays the Approve/Reject column.
+ * @param {string} filterSearch - The current text input from the search bar.
+ * @param {string} filterIncident - The current selection from the incident dropdown.
+ */
+function generateComplaintTableHTML(status, data, showActions, filterSearch, filterIncident) {
+    const filteredByStatus = data.filter(c => c.status?.toLowerCase() === status.toLowerCase());
+
+    // 1. Apply global search/incident filters (client-side)
+    const globallyFilteredData = filteredByStatus.filter(c => {
+        const name = c.user_name.toLowerCase();
+        const incident = c.incident_type;
+        
+        const matchesSearch = filterSearch === "" || name.includes(filterSearch);
+        const matchesIncident = filterIncident === "" || incident === filterIncident;
+        
+        return matchesSearch && matchesIncident;
+    });
+
+    // 2. Limit entries and determine if scrolling is needed
+    const complaintsToDisplay = globallyFilteredData.slice(0, MAX_ENTRIES_PER_TABLE);
+    const isScrollable = globallyFilteredData.length > MAX_ENTRIES_PER_TABLE;
+
+    // Determine the total colspan (9 columns + 1 for Action if visible)
+    const colspan = showActions ? 10 : 9;
+
+    return `
+        <h2 class="text-xl font-semibold mb-3 ${showActions ? 'mt-8' : 'mt-4'} text-teal-700">${status} Complaints (${globallyFilteredData.length})</h2>
+        
+        <!-- Table Container with fixed height and scrolling -->
+        <div class="${isScrollable ? 'max-h-96 overflow-y-auto' : ''} shadow-lg rounded-lg border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Person Reported</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Incident</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        ${showActions ? '<th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>' : ''}
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    ${complaintsToDisplay.map(c => `
+                        <tr class="hover:bg-gray-50 transition-colors duration-150">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${c.id}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${c.user_name}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${c.contact || '—'}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${c.personToReport || '—'}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${c.incident_type || '—'}</td>
+                            <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">${c.details || '—'}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${formatDateToPH(c.date)}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${c.time || '—'}</td>
+                            <td id="complaint-status-${c.id}" class="px-4 py-3 whitespace-nowrap text-sm">
+                                <span class="badge ${c.status?.toLowerCase() || 'pending'}">${c.status || 'Pending'}</span>
+                            </td>
+                            ${showActions ? `
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">
+                                    <button onclick="updateStatusAndRefresh('complaint', ${c.id}, 'Approved')" 
+                                            class="btn-approve bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded text-xs transition-colors">
+                                        Approve
+                                    </button>
+                                    <button onclick="updateStatusAndRefresh('complaint', ${c.id}, 'Rejected')" 
+                                            class="btn-reject bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded text-xs transition-colors">
+                                        Reject
+                                    </button>
+                                </td>
+                            ` : ''}
+                        </tr>
+                    `).join('')}
+                    ${globallyFilteredData.length === 0 ? `
+                        <tr><td colspan="${colspan}" class="text-center py-6 text-gray-500">No ${status.toLowerCase()} complaints found matching the filters.</td></tr>
+                    ` : ''}
+                </tbody>
+            </table>
+        </div>
+        ${isScrollable ? `<p class="text-sm text-gray-500 mt-2">Showing ${MAX_ENTRIES_PER_TABLE} of ${globallyFilteredData.length} entries. Scroll for more.</p>` : ''}
+    `;
+}
+
+
+/*
+ * Main function to display the Complaints section with separate Pending, Approved, and Rejected tables.
+ */
+async function showComplaints() {
+    // 1. Fetch data only if it hasn't been fetched yet
+    if (allComplaints.length === 0) {
+        try {
+            const res = await fetch("http://localhost:8081/api/complaints");
+            if (!res.ok) {
+                 throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            allComplaints = await res.json();
+        } catch (error) {
+            console.error("fetching complaints:", error);
+            content.innerHTML = `<h1>Complaints</h1><p class="text-red-500">Error loading complaints data. Check API server (Status: ${error.message})</p>`;
+            return;
+        }
+    }
+    
+    // Reset active filter to 'All' since we are now displaying all status types at once
+    activeComplaintFilter = 'All'; 
+
+    // 2. Generate the Incident filter options (only once)
+    const incidentOptions = [...new Set(allComplaints.map(c => c.incident_type))]
+        .map(t => `<option value="${t}">${t}</option>`).join('');
+
+    // 3. Render the main container (The tables themselves are rendered by filterTable)
+    content.innerHTML = `
+        <h1 class="text-2xl font-bold mb-6">Complaints Dashboard</h1>
+
+        <!-- Search and Global Filter Controls (Refresh button removed) -->
+        <div class="controls mb-8 flex space-x-4 items-center">
+            <input type="text" id="searchComplaint" placeholder="Search by name" onkeyup="filterTable()" class="p-2 border rounded-lg shadow-sm w-64" />
+            <select id="filterIncident" onchange="filterTable()" class="p-2 border rounded-lg shadow-sm">
+                <option value="">All Incidents</option>
+                ${incidentOptions}
+            </select>
+        </div>
+
+        <!-- Container for the dynamically rendered tables -->
+        <div id="complaints-multi-tables">
+            <!-- Tables will be inserted here by filterTable() -->
+        </div>
+    `;
+
+    // 4. Initial render of the tables
+    window.filterTable(); 
+}
+
+// Global filter function to handle both search bar and incident select dropdown
+// This function now RE-RENDERS all three tables based on the current filter settings.
+window.filterTable = function() {
+    const search = document.getElementById("searchComplaint")?.value.toLowerCase() || "";
+    const incidentFilter = document.getElementById("filterIncident")?.value || "";
+    const tableContainer = document.getElementById("complaints-multi-tables");
+
+    if (!tableContainer) return; // Exit if the container isn't ready
+
+    // Generate and inject the three required tables
+    tableContainer.innerHTML = `
+     <!-- 🔹 Pending Complaints Section -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 mt-4 border-b-2 border-teal-500 pb-2">
+                Pending Complaints
+            </h1>
+        </div>
+        ${generateComplaintTableHTML('Pending', allComplaints, true, search, incidentFilter)}
+        <hr class="my-8 border-gray-300">
+         <!-- 🔹 Pending Complaints Section -->
+        <div class="mb-6">
+             <h1 class="text-2xl font-bold text-gray-800 mt-4 border-b-2 border-teal-500 pb-2">
+                Approved Complaints
+            </h1>
+        </div>
+        ${generateComplaintTableHTML('Approved', allComplaints, false, search, incidentFilter)}
+        <hr class="my-8 border-gray-300">
+         <!-- 🔹 Pending Complaints Section -->
+        <div class="mb-6">
+             <h1 class="text-2xl font-bold text-gray-800 mt-4 border-b-2 border-teal-500 pb-2">
+                Rejected Complaints
+            </h1>
+        </div>
+        ${generateComplaintTableHTML('Rejected', allComplaints, false, search, incidentFilter)}
+    `;
+};
+
+// Wrapper function to call the status update and then refresh the view
+async function updateStatusAndRefresh(type, id, newStatus) {
+    // 1. Send API update
+    await updateStatus(type, id, newStatus); 
+    
+    // 2. TANGGALIN LANG ANG CACHED ARRAYS NG ADMIN:
+    if (type === 'complaint') {
+        allComplaints = []; 
+        // ...
+    } else if (type === 'appointment') {
+        allAppointments = []; 
+        // ...
+    }
+  }
+
+
+    /* ========== 3️⃣ APPOINTMENTS SECTION ========== */
+   // NOTE: This is a placeholder file based on the complaints logic structure.
+// Global variable to hold all appointments data once fetched
+let allAppointments = [];
+
+// Define the maximum number of entries to display per table
+const MAX_ENTRIES_PER_TABLE = 7;
+
+// --- Utility Functions ---
+
+/**
+ * Helper function to format an ISO date string (YYYY-MM-DD) into a Philippine date format (MM/DD/YYYY).
+ * @param {string} isoDateString - The date string from the database (e.g., '2025-10-25').
+ * @returns {string} The formatted date string (e.g., '10/25/2025') or '—' if null/invalid.
+ */
+function formatDateToPH(isoDateString) {
+    if (!isoDateString) return '—';
+    try {
+        const date = new Date(isoDateString);
+        // Ensure the date is valid before formatting
+        if (isNaN(date)) return '—';
+
+        // Use locale-specific formatting for clarity and safety, assuming 'en-PH' locale for Philippine format
+        return date.toLocaleDateString('en-PH', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    } catch (e) {
+        console.error("Error formatting date:", e);
+        return '—';
+    }
+}
+
+
+/*
+ * Generates the HTML for a single appointments table, filtered by status.
+ * (Placeholder function structure)
+ */
+function generateAppointmentTableHTML(status, data, showActions, filterSearch) {
+    const filteredByStatus = data.filter(a => a.status?.toLowerCase() === status.toLowerCase());
+
+    // 1. Apply global search/name filters (client-client)
+    const globallyFilteredData = filteredByStatus.filter(a => {
+        // Updated to use user_name instead of patient_name for search
+        const name = a.user_name.toLowerCase();
+        return filterSearch === "" || name.includes(filterSearch);
+    });
+
+    // 2. Limit entries and determine if scrolling is needed
+    const appointmentsToDisplay = globallyFilteredData.slice(0, MAX_ENTRIES_PER_TABLE);
+    const isScrollable = globallyFilteredData.length > MAX_ENTRIES_PER_TABLE;
+
+    // Determine the total colspan 
+    // Removed 'Contact' column since it is not in the uploaded database structure
+    const colspan = showActions ? 7 : 6; 
+
+    return `
+        <!-- Table Container with fixed height and scrolling -->
+        <div class="${isScrollable ? 'max-h-96 overflow-y-auto' : ''} shadow-lg rounded-lg border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Name</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason/Details</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        ${showActions ? '<th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>' : ''}
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    ${appointmentsToDisplay.map(a => `
+                        <tr class="hover:bg-gray-50 transition-colors duration-150">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${a.id}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${a.user_name || '—'}</td>
+                            <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">${a.reason || '—'}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${formatDateToPH(a.date)}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${a.time || '—'}</td>
+                            <td id="appointment-status-${a.id}" class="px-4 py-3 whitespace-nowrap text-sm">
+                                <span class="badge ${a.status?.toLowerCase() || 'pending'}">${a.status || 'Pending'}</span>
+                            </td>
+                            ${showActions ? `
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">
+                                    <button onclick="updateStatusAndRefresh('appointment', ${a.id}, 'Approved')" 
+                                            class="btn-approve bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded text-xs transition-colors">
+                                        Approve
+                                    </button>
+                                    <button onclick="updateStatusAndRefresh('appointment', ${a.id}, 'Rejected')" 
+                                            class="btn-reject bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded text-xs transition-colors">
+                                        Reject
+                                    </button>
+                                </td>
+                            ` : ''}
+                        </tr>
+                    `).join('')}
+                    ${globallyFilteredData.length === 0 ? `
+                        <tr><td colspan="${colspan}" class="text-center py-6 text-gray-500">No ${status.toLowerCase()} appointments found matching the filters.</td></tr>
+                    ` : ''}
+                </tbody>
+            </table>
+        </div>
+        ${globallyFilteredData.length > 0 
+            ? `<p class="text-sm text-gray-500 mt-2">Showing ${appointmentsToDisplay.length} of ${globallyFilteredData.length} entries${isScrollable ? '. Scroll for more.' : '.'}</p>`
+            : ''
+        }
+    `;
+}
+
+// ----------------------------------------------------------------------------------
+// Fetch Appointments: Updated to fetch real data from the API endpoint.
+// ----------------------------------------------------------------------------------
+async function fetchAppointments() {
+    try {
+        const res = await fetch("http://localhost:8081/api/appointments");
+        if (!res.ok) {
+             throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        // Throwing the error here allows showAppointments to handle the UI feedback.
+        throw new Error(error.message || "Failed to connect to API server.");
+    }
+}
+
+/*
+ * Main function to display the Appointments section
+ */
+async function showAppointments() {
+    if (allAppointments.length === 0) {
+        try {
+            allAppointments = await fetchAppointments(); 
+        } catch (error) {
+            console.error("fetching appointments:", error);
+            // If fetching fails, render the dashboard with an error message
+            content.innerHTML = `
+                <h1 class="text-2xl font-bold mb-6">Appointments Dashboard</h1>
+                <p class="text-red-500 p-4 bg-red-50 rounded-lg shadow">
+                    Error loading appointments data. Please ensure the API server is running (Status: ${error.message || 'Unknown Error'}).
+                </p>
+                <div class="controls mb-8 flex space-x-4 items-center">
+                    <!-- Updated search placeholder to match the database column: user_name -->
+                    <input type="text" id="searchAppointment" placeholder="Search by user name" onkeyup="filterTableAppointments()" class="p-2 border rounded-lg shadow-sm w-64" />
+                </div>
+            `;
+            return;
+        }
+    }
+    
+    // Render the main container
+    // Assuming 'content' is available globally
+    content.innerHTML = `
+        <h1 class="text-2xl font-bold mb-6">Appointments Dashboard</h1>
+
+        <!-- Search Control -->
+        <div class="controls mb-8 flex space-x-4 items-center">
+             <!-- Updated search placeholder to match the database column: user_name -->
+            <input type="text" id="searchAppointment" placeholder="Search by user name" onkeyup="filterTableAppointments()" class="p-2 border rounded-lg shadow-sm w-64" />
+        </div>
+
+        <!-- Container for the dynamically rendered tables -->
+        <div id="appointments-multi-tables">
+            <!-- Tables will be inserted here by filterTableAppointments() -->
+        </div>
+    `;
+
+    // Initial render of the tables
+    window.filterTableAppointments(); 
+}
+
+// Global filter function to handle search bar for appointments.
+window.filterTableAppointments = function() {
+    const search = document.getElementById("searchAppointment")?.value.toLowerCase() || "";
+    const tableContainer = document.getElementById("appointments-multi-tables");
+
+    if (!tableContainer) return; // Exit if the container isn't ready
+
+    // Generate and inject the three required tables with distinct titles
+    tableContainer.innerHTML = `
+        <!-- 🔹 Pending Appointments Section -->
+        <div class="mb-12">
+            <h1 class="text-2xl font-bold text-gray-800 mt-4 border-b-2 border-teal-500 pb-2">
+                Pending Appointments
+            </h1>
+        </div>
+        ${generateAppointmentTableHTML('Pending', allAppointments, true, search)}
+        <hr class="my-8 border-gray-300">
+        
+        <!-- 🔹 Approved Appointments Section -->
+        <div class="mb-12">
+            <h1 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-teal-500 pb-2">
+                Approved Appointments
+            </h1>
+        </div>
+        ${generateAppointmentTableHTML('Approved', allAppointments, false, search)}
+        <hr class="my-8 border-gray-300">
+        
+        <!-- 🔹 Rejected Appointments Section -->
+        <div class="mb-12">
+            <h1 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-teal-500 pb-2">
+                Rejected Appointments
+            </h1>
+        </div>
+        ${generateAppointmentTableHTML('Rejected', allAppointments, false, search)}
+    `;
+};
+
+/* 🔑 CRITICAL: CORE ADMIN ACTIONS (CORRECTED) */
+
+/**
+ * CRITICAL: API function to update record status (Sends request to server)
+ * This function is SAFE and DOES NOT manipulate localStorage('user').
+ */
+async function updateStatus(type, id, newStatus) {
+    const endpoint = `http://localhost:8081/api/${type}s/${id}/status`;
+    console.log(`[API CALL] Updating ${type} ${id} to ${newStatus}`);
+
+    try {
+        const res = await fetch(endpoint, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.message || `Failed to update status for ${type} ${id}.`);
+        }
+        // WALANG LOCAL STORAGE CODE DITO.
+
+        alert(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} ID ${id} successfully set to ${newStatus}.`);
+
+    } catch (err) {
+        console.error("API Update Error:", err);
+        alert(`❌ Error updating status: ${err.message}`);
+    }
+}
+
+/**
+ * CRITICAL: Wrapper function to handle status update and view refresh.
+ * (This version is safe and does not delete user sessions)
+ */
+async function updateStatusAndRefresh(type, id, newStatus) {
+    // 1. Send API update
+    await updateStatus(type, id, newStatus); 
+    
+    // 2. Clear cached data and re-render based on type
+    // Tanging ang cached arrays lang ng Admin ang kailangan nating galawin.
+    if (type === 'complaint') {
+        allComplaints = []; // Clear the cached complaints data
+        
+        // Re-render only if the user is on the Complaints page
+        const complaintsButton = document.getElementById("btnComplaints");
+        if (complaintsButton && complaintsButton.classList.contains("active")) {
+            await showComplaints(); 
+        }
+    } else if (type === 'appointment') {
+        allAppointments = []; // Clear appointments data
+        
+        // Re-render only if the user is on the Appointments page
+        const appointmentsButton = document.getElementById("btnAppointments");
+        if (appointmentsButton && appointmentsButton.classList.contains("active")) {
+            await showAppointments();
+        }
+    }
+    // ✅ WALANG LOCAL STORAGE DELETION DITO.
+}
+
+    /* ========== 4️⃣ PENDING SECTION ========== */
+async function showPending() {
+  const [complaintsRes, appointmentsRes] = await Promise.all([
+    fetch("http://localhost:8081/api/complaints"),
+    fetch("http://localhost:8081/api/appointments")
+  ]);
+
+  const complaints = (await complaintsRes.json()).filter(c => c.status === 'Pending' || !c.status);
+  const appointments = (await appointmentsRes.json()).filter(a => a.status === 'Pending' || !a.status);
+
+  content.innerHTML = `
+    <h1>Pending Records</h1>
+
+    <h3>Pending Complaints</h3>
+    <div class="controls">
+      <input type="text" id="searchPendingComplaints" placeholder="Search by name..." onkeyup="filterPendingComplaints()" />
+      <select id="filterPendingIncident" onchange="filterPendingComplaints()">
+        <option value="">All Incidents</option>
+        ${[...new Set(complaints.map(c => c.incident_type))].map(t => `<option value="${t}">${t}</option>`).join('')}
+      </select>
+      <button class="btn" onclick="showPending()">Refresh</button>
+    </div>
+    <table id="pendingComplaintsTable">
+      <thead>
+        <tr>
+          <th>ID</th><th>User</th><th>Person Reported</th><th>Incident</th>
+          <th>Details</th><th>Date</th><th>Time</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${complaints.map(c => `
+          <tr>
+            <td>${c.id}</td><td>${c.user_name}</td><td>${c.personToReport || '—'}</td>
+            <td>${c.incident_type || '—'}</td><td>${c.details || '—'}</td>
+            <td>${formatDateToPH(c.date)}</td><td>${c.time || '—'}</td>
+            <td><span class="badge pending">Pending</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <h3>Pending Appointments</h3>
+    <div class="controls">
+      <input type="text" id="searchPendingAppointments" placeholder="Search by name..." onkeyup="filterPendingAppointments()" />
+      <button class="btn" onclick="showPending()">Refresh</button>
+    </div>
+    <table id="pendingAppointmentsTable">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Reason</th><th>Date</th><th>Time</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${appointments.map(a => `
+          <tr>
+            <td>${a.id}</td><td>${a.user_name}</td><td>${a.reason || '—'}</td>
+            <td>${formatDateToPH(a.date)}</td><td>${a.time || '—'}</td>
+            <td><span class="badge pending">Pending</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  window.filterPendingComplaints = function() {
+    const search = document.getElementById("searchPendingComplaints").value.toLowerCase();
+    const filter = document.getElementById("filterPendingIncident").value;
+    const rows = document.querySelectorAll("#pendingComplaintsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const incident = row.cells[3].textContent;
+      const match = name.includes(search) && (filter === "" || incident === filter);
+      row.style.display = match ? "" : "none";
+    });
+  };
+
+  window.filterPendingAppointments = function() {
+    const search = document.getElementById("searchPendingAppointments").value.toLowerCase();
+    const rows = document.querySelectorAll("#pendingAppointmentsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const match = name.includes(search);
+      row.style.display = match ? "" : "none";
+    });
+  };
+}
+
+/* ========== 5️⃣ APPROVED SECTION ========== */
+async function showApproved() {
+  const [complaintsRes, appointmentsRes] = await Promise.all([
+    fetch("http://localhost:8081/api/complaints"),
+    fetch("http://localhost:8081/api/appointments")
+  ]);
+  const complaints = (await complaintsRes.json()).filter(c => c.status === 'Approved');
+  const appointments = (await appointmentsRes.json()).filter(a => a.status === 'Approved');
+
+  content.innerHTML = `
+    <h1>Approved Records</h1>
+
+    <h3>Approved Complaints</h3>
+    <div class="controls">
+      <input type="text" id="searchApprovedComplaints" placeholder="Search by name..." onkeyup="filterApprovedComplaints()" />
+      <select id="filterApprovedIncident" onchange="filterApprovedComplaints()">
+        <option value="">All Incidents</option>
+        ${[...new Set(complaints.map(c => c.incident_type))].map(t => `<option value="${t}">${t}</option>`).join('')}
+      </select>
+      <button class="btn" onclick="showApproved()">Refresh</button>
+    </div>
+    <table id="approvedComplaintsTable">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Person Reported</th><th>Incident</th>
+        <th>Details</th><th>Date</th><th>Time</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${complaints.map(c => `
+          <tr>
+            <td>${c.id}</td><td>${c.user_name}</td><td>${c.personToReport || '—'}</td>
+            <td>${c.incident_type || '—'}</td><td>${c.details || '—'}</td>
+            <td>${formatDateToPH(c.date)}</td><td>${c.time || '—'}</td>
+            <td><span class="badge approved">Approved</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <h3>Approved Appointments</h3>
+    <div class="controls">
+      <input type="text" id="searchApprovedAppointments" placeholder="Search by name..." onkeyup="filterApprovedAppointments()" />
+      <button class="btn" onclick="showApproved()">Refresh</button>
+    </div>
+    <table id="approvedAppointmentsTable">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Reason</th><th>Date</th><th>Time</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${appointments.map(a => `
+          <tr>
+            <td>${a.id}</td><td>${a.user_name}</td><td>${a.reason || '—'}</td>
+            <td>${formatDateToPH(a.date)}</td><td>${a.time || '—'}</td>
+            <td><span class="badge approved">Approved</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  window.filterApprovedComplaints = function() {
+    const search = document.getElementById("searchApprovedComplaints").value.toLowerCase();
+    const filter = document.getElementById("filterApprovedIncident").value;
+    const rows = document.querySelectorAll("#approvedComplaintsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const incident = row.cells[3].textContent;
+      const match = name.includes(search) && (filter === "" || incident === filter);
+      row.style.display = match ? "" : "none";
+    });
+  };
+
+  window.filterApprovedAppointments = function() {
+    const search = document.getElementById("searchApprovedAppointments").value.toLowerCase();
+    const rows = document.querySelectorAll("#approvedAppointmentsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const match = name.includes(search);
+      row.style.display = match ? "" : "none";
+    });
+  };
+}
+
+/* ========== 6️⃣ REJECTED SECTION ========== */
+async function showRejected() {
+  const [complaintsRes, appointmentsRes] = await Promise.all([
+    fetch("http://localhost:8081/api/complaints"),
+    fetch("http://localhost:8081/api/appointments")
+  ]);
+  const complaints = (await complaintsRes.json()).filter(c => c.status === 'Rejected');
+  const appointments = (await appointmentsRes.json()).filter(a => a.status === 'Rejected');
+
+  content.innerHTML = `
+    <h1>Rejected Records</h1>
+
+    <h3>Rejected Complaints</h3>
+    <div class="controls">
+      <input type="text" id="searchRejectedComplaints" placeholder="Search by name..." onkeyup="filterRejectedComplaints()" />
+      <select id="filterRejectedIncident" onchange="filterRejectedComplaints()">
+        <option value="">All Incidents</option>
+        ${[...new Set(complaints.map(c => c.incident_type))].map(t => `<option value="${t}">${t}</option>`).join('')}
+      </select>
+      <button class="btn" onclick="showRejected()">Refresh</button>
+    </div>
+    <table id="rejectedComplaintsTable">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Person Reported</th><th>Incident</th>
+        <th>Details</th><th>Date</th><th>Time</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${complaints.map(c => `
+          <tr>
+            <td>${c.id}</td><td>${c.user_name}</td><td>${c.personToReport || '—'}</td>
+            <td>${c.incident_type || '—'}</td><td>${c.details || '—'}</td>
+            <td>${formatDateToPH(c.date)}</td><td>${c.time || '—'}</td>
+            <td><span class="badge rejected">Rejected</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <h3>Rejected Appointments</h3>
+    <div class="controls">
+      <input type="text" id="searchRejectedAppointments" placeholder="Search by name..." onkeyup="filterRejectedAppointments()" />
+      <button class="btn" onclick="showRejected()">Refresh</button>
+    </div>
+    <table id="rejectedAppointmentsTable">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Reason</th><th>Date</th><th>Time</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${appointments.map(a => `
+          <tr>
+            <td>${a.id}</td><td>${a.user_name}</td><td>${a.reason || '—'}</td>
+            <td>${formatDateToPH(a.date)}</td><td>${a.time || '—'}</td>
+            <td><span class="badge rejected">Rejected</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  window.filterRejectedComplaints = function() {
+    const search = document.getElementById("searchRejectedComplaints").value.toLowerCase();
+    const filter = document.getElementById("filterRejectedIncident").value;
+    const rows = document.querySelectorAll("#rejectedComplaintsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const incident = row.cells[3].textContent;
+      const match = name.includes(search) && (filter === "" || incident === filter);
+      row.style.display = match ? "" : "none";
+    });
+  };
+
+  window.filterRejectedAppointments = function() {
+    const search = document.getElementById("searchRejectedAppointments").value.toLowerCase();
+    const rows = document.querySelectorAll("#rejectedAppointmentsTable tbody tr");
+
+    rows.forEach(row => {
+      const name = row.cells[1].textContent.toLowerCase();
+      const match = name.includes(search);
+      row.style.display = match ? "" : "none";
+    });
+  };
+}
+
+    /* ========== 5️⃣ USERS SECTION ========== */
+    async function showUsers() {
+      const res = await fetch("http://localhost:8081/api/users");
+      const users = await res.json();
+
+      content.innerHTML = `
+        <h1>Users</h1>
+        <table id="usersTable">
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>${users.map(u => `
+            <tr>
+              <td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.status}</td>
+              <td><button onclick="toggleUser(${u.id}, '${u.status}')" class="btn-toggle">
+                ${u.status === 'Active' ? 'Deactivate' : 'Activate'}
+              </button></td>
+            </tr>
+          `).join('')}</tbody>        </table>
+      `;    }
+
+    async function toggleUser(id, status) {
+      const newStatus = status === 'Active' ? 'Inactive' : 'Active';
+      await fetch(`http://localhost:8081/api/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      showUsers();
+    }
+
+    /* ========== 6️⃣ ARCHIVED USERS SECTION ========== */
+    async function showArchived() {
+      const res = await fetch("http://localhost:8081/api/users");
+      const users = await res.json();
+      const archived = users.filter(u => u.status === 'Inactive');
+
+      content.innerHTML = `
+        <h1>Archived Users</h1>
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th></tr></thead>
+          <tbody>${archived.map(u => `
+            <tr><td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.status}</td></tr>
+          `).join('')}</tbody>        </table>
+      `;    }
+
+    // ✅ Default View
+    showDashboard();
+
+    function updateStatus(type, id, status) {
+  fetch("http://localhost:8081/update-status", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type, id, status }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      alert(data.message);
+      const badge = document.querySelector(`#${type}-status-${id} .badge`);
+      if (badge) {
+        badge.textContent = status;
+        badge.className = `badge ${status.toLowerCase()}`;
+      }
+    })
+    .catch((err) => console.error("Error:", err));
+}
+
+/* ========== ACCOUNT PAGE ========== */
+function showAccount() {
+  const user = JSON.parse(localStorage.getItem("adminUser"));
+  if (!user) return alert("No user logged in.");
+
+  content.innerHTML = `
+    <h1>Admin Account</h1>
+    <div class="account-container">
+      <p><strong>Name:</strong> ${user.name}</p>
+      <p><strong>Email:</strong> ${user.email}</p>
+      <p><strong>Role:</strong> ${user.user_type}</p>
+      <hr>
+      <h2>Change Password</h2>
+      <form id="changePasswordForm">
+        <label>Current Password:</label>
+        <div class="password-field">
+          <input type="password" id="currentPassword" required />
+          <span class="toggle-password" data-target="currentPassword" title="Show/Hide Password">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="gray" viewBox="0 0 24 24">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 
+              12c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5zm0-7.5a3 
+              3 0 100 6 3 3 0 000-6z"/>
+            </svg>
+          </span>
+        </div>
+
+        <label>New Password:</label>
+        <div class="password-field">
+          <input type="password" id="newPassword" required />
+          <span class="toggle-password" data-target="newPassword" title="Show/Hide Password">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="gray" viewBox="0 0 24 24">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 
+              12c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5zm0-7.5a3 
+              3 0 100 6 3 3 0 000-6z"/>
+            </svg>
+          </span>
+        </div>
+
+        <label>Confirm New Password:</label>
+        <div class="password-field">
+          <input type="password" id="confirmPassword" required />
+          <span class="toggle-password" data-target="confirmPassword" title="Show/Hide Password">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="gray" viewBox="0 0 24 24">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 
+              12c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5zm0-7.5a3 
+              3 0 100 6 3 3 0 000-6z"/>
+            </svg>
+          </span>
+        </div>
+
+        <button type="submit" class="btn">Update Password</button>
+      </form>
+    </div>
+  `;
+  // 👁️ Show/hide password toggle
+  document.querySelectorAll(".toggle-password").forEach(icon => {
+    icon.addEventListener("click", () => {
+      const input = document.getElementById(icon.dataset.target);
+      input.type = input.type === "password" ? "text" : "password";
+    });
+  });
+
+  // 🔐 Change password logic
+document.getElementById("changePasswordForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // ASSUMPTION: The 'user' object (containing user.id) is available here.
+    const userId = user.id; // 👈 CRITICAL: Get the user's ID
+    
+    // Check if user ID is available
+    if (!userId) {
+        alert("❌ User ID not found. Please log in again.");
+        return;
+    }
+
+    const currentPassword = document.getElementById("currentPassword").value.trim();
+    const newPassword = document.getElementById("newPassword").value.trim();
+    const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        alert("⚠️ Please fill in all fields.");
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        alert("❌ New passwords do not match!");
+        return;
+    }
+
+    try {
+        // 💡 SOLVED ERROR #1: Use the correct endpoint with the user ID
+        const url = `http://localhost:8081/api/users/${userId}/change-password`;
+        
+        console.log(`Sending password change request to: ${url}`);
+        
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                // 💡 SOLVED ERROR #2: Only send necessary data
+                currentPassword,
+                newPassword
+            })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            alert(data.message || "❌ Failed to update password.");
+            console.error("Server response:", data);
+            return;
+        }
+
+        alert("✅ Password successfully changed! Please log in again.");
+        
+        // Optional: Clear the password fields after success
+        document.getElementById("currentPassword").value = '';
+        document.getElementById("newPassword").value = '';
+        document.getElementById("confirmPassword").value = '';
+
+        // Redirect Admin back to the Admin Login page
+        window.location.href = "../admin/adminlogin.html";
+    } catch (err) {
+        console.error("Fetch error:", err);
+        alert("❌ Unable to connect to the server or process the request.");
+    }
+});
+}
+  </script>
+</body>
+</html>
